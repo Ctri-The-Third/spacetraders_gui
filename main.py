@@ -1,70 +1,44 @@
-import dearpygui.dearpygui as dpg
-import dearpygui.demo as demo
+# display commanders & their contract progress
 
-from straders_sdk.client_postgres import SpaceTradersPostgresClient as SpaceTraders
-import straders_sdk.models
-from straders_sdk.utils import waypoint_slicer
+# display ships & behaviours
+
+# display discovered shipyards & market info (if available)
+import psycopg2
 import json
-import logging
+from straders_sdk.utils import try_execute_select
+from straders_sdk.client_postgres import SpaceTradersPostgresClient as SpaceTraders
+from flask import Flask, render_template
+from datetime import datetime, timedelta
+from query_functions import query_waypoint
 
-from render_system import render_system
+config_file_name = "user.json"
+saved_data = json.load(open(config_file_name, "r+"))
+db_host = saved_data.get("db_host", None)
+db_port = saved_data.get("db_port", None)
+db_name = saved_data.get("db_name", None)
+db_user = saved_data.get("db_user", None)
+db_pass = saved_data.get("db_pass", None)
 
-dpg.create_context()
-dpg.configure_app(manual_callback_management=True)
+st = SpaceTraders(db_host, db_name, db_user, db_pass, "CTRI-U-", db_port)
+connection = st.connection
+cursor = connection.cursor()
 
-config = {}
-with open("user.json") as f:
-    config = json.load(f)
-
-st = SpaceTraders(
-    config["db_host"],
-    config["db_name"],
-    config["db_user"],
-    config["db_pass"],
-    config["agent_name"],
-    db_port=config["db_port"],
-)
-
-
-agent = st.view_my_self()
-target_system = st.systems_view_one(waypoint_slicer(agent.headquarters))
-
-page_width = 800
-page_height = 600
-cv = [page_width / 2, page_height / 2]
-zoom_scale = 3
-with dpg.window(
-    label="Tutorial",
-    no_collapse=True,
-    no_resize=True,
-    no_move=True,
-    no_scroll_with_mouse=True,
-    no_scrollbar=True,
-):
-    with dpg.drawlist(page_width, page_height - 50):
-        with dpg.draw_layer(tag="system_view"):
-            render_system(target_system, page_width, page_height, zoom_scale, cv)
+app = Flask(__name__)
 
 
-def roll_mouse_wheel(sender, app_data):
-    logging.info(f"Mouse wheel rolled {app_data}")
-    global zoom_scale
+@app.route("/query/<string>")
+def query(string):
+    params = query_waypoint(st, string)
 
-    zoom_scale += app_data
-
-    dpg.configure_item("system_view", zoom_scale=zoom_scale)
-
-
-with dpg.handler_registry():
-    dpg.add_mouse_wheel_handler(callback=roll_mouse_wheel)
+    return render_template("waypoint_summary.html", **params)
+    # if it matches a player - go get the player summary
+    # if it matches a ship - go get the ship summary
 
 
-dpg.create_viewport(title="Custom Title", width=page_width, height=page_height)
-dpg.setup_dearpygui()
-dpg.show_viewport()
-while dpg.is_dearpygui_running():
-    jobs = dpg.get_callback_queue()  # retrieves and clears queue
-    # dpg.run_callbacks(jobs)
-    dpg.render_dearpygui_frame()
+@app.route("/")
+def index():
+    return render_template("system_view.html")
 
-dpg.destroy_context()
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=4000)

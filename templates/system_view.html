@@ -101,103 +101,11 @@
             <div class="col-md-4 col-sm-12" style="">
                 <div class="row">
                     <div class="col-sm-12">
-                        <div class="small-square">
-                            <h1>X1-U49-H54 MOON </h1>
-                            ROCKY SCATTERED_SETTLEMENTS CORROSIVE_ATMOSPHERE THIN_ATMOSPHERE INDUSTRIAL MARKETPLACE
-                            SHIPYARD
-                            <hr />
-                            <h1>shipyard</h1>
-                            "SHIP_MINING_DRONE" - 1356613<br />
-                            <hr />
-                            <h1>market</h1>
-                            last checked = 2023-11-17 16:45<br />
-                            <div class="table-responsive">
-                                <table class="table table-bordered" data-bs-theme="dark">
-                                    <thead>
-                                        <tr>
-                                            <th>Ship Parts</th>
-                                            <th>Supply</th>
-                                            <th>buy price</th>
-                                            <th>sell value</th>
-                                            <th>depth</th>
-                                            <th>Import/Export</th>
-                                            <th>Activity</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td>SHIP_PARTS</td>
-                                            <td>SCARCE</td>
-                                            <td>69996</td>
-                                            <td>34998</td>
-                                            <td>10</td>
-                                            <td>IMPORT</td>
-                                            <td>GROWING</td>
-                                        </tr>
-                                        <tr>
-                                            <td>FUEL</td>
-                                            <td>ABUNDANT</td>
-                                            <td>209</td>
-                                            <td>189</td>
-                                            <td>100</td>
-                                            <td>EXCHANGE</td>
-                                            <td></td>
-                                        </tr>
-                                        <tr>
-                                            <td>ELECTRONICS</td>
-                                            <td>SCARCE</td>
-                                            <td>5922</td>
-                                            <td>2959</td>
-                                            <td>10</td>
-                                            <td>IMPORT</td>
-                                            <td>WEAK</td>
-                                        </tr>
-                                        <tr>
-                                            <td>SHIP_PLATING</td>
-                                            <td>SCARCE</td>
-                                            <td>70926</td>
-                                            <td>35246</td>
-                                            <td>10</td>
-                                            <td>IMPORT</td>
-                                            <td>GROWING</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                            <!-- -- start here -- -->
-                            <div class="container">
-
-                                <div class="row">
-                                    <div class="col-2">
-                                        <div class="box">
-                                            <div>1A⛵⛏️ 65%/10</div>
-                                        </div>
-                                    </div>
-                                    <div class="col-2">
-                                        <div class="box">
-                                            <div>1D⛵⛏️ 0%/10</div>
-                                        </div>
-                                    </div>
-                                    <div class="col-2">
-                                        <div class="box">
-                                            <div>16⛵⛏️ 80%/10</div>
-                                        </div>
-                                    </div>
-                                    <div class="col-2">
-                                        <div class="box"> 13⛵⛏️ 100%/10</div>
-                                    </div>
-                                    <div class="col-2">
-                                        <div class="box">
-                                            <div>3A⛵⛏️ 0%/10</div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- -- end here -- -->
-                            </div>
+                        <div class="small-square" id="object_summary">
+                            loading...
                         </div>
                         <div class="col-sm-12" style="margin-top:20px;">
-                            <div class="small-square">
+                            <div class="small-square" id="object_history">
                                 <h1>list recent transactions & market changes</h1>
                                 <div class="table-responsive">
                                     <table class="table table-bordered" data-bs-theme="dark">
@@ -300,33 +208,33 @@
     var circles = svg.getElementsByTagName("circle");
 
     document.getElementById("requestButton").addEventListener("click", function () {
-        fetch("/endpoint")
-            .then(response => response.json())
-            .then(data => {
-                // Handle the JSON blob response here
-                document.getElementById("responseContainer").innerText = JSON.stringify(data);
-            })
-            .catch(error => console.error(error));
+        query = document.getElementById("controlinput").value;
+        fetch_block(query, "object_summary");
     });
 
     // click an inspect
     function fetch_block(query, return_div_symbol) {
-        url = "/query?query=" + query
+
+        url = "/query/" + query
+        const parser = new DOMParser();
+
         fetch(url)
             .then(response => response.text())
-            .then(data => {
+            .then(html => {
+                var parsedHtml = parser.parseFromString(html, 'text/html');
                 // Handle the JSON blob response here
-                document.getElementById(return_div_symbom).innerText = data;
-            })
-            .catch(error => console.error(error));
+                document.getElementById(return_div_symbol).innerHTML = html
+
+            }).catch(error => console.error(error));
     }
 
     //on mouseover change the contents of 'controlinput' to the id of the circle
     for (var i = 0; i < circles.length; i++) {
         circles[i].addEventListener("mouseover", function () {
-            document.getElementById("controlinput").value = this.id;
+            if (this.id != "") { document.getElementById("controlinput").value = this.id; }
         });
     }
+
     //load a json blob and draw circles based on its content
 
 

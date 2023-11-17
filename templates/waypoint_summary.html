@@ -1,0 +1,71 @@
+<h1>{{waypoint_symbol}} {{waypoint_type}} </h1>
+<p>{% for trait in waypoint_traits %} {{trait}}, {% endfor %}</p>
+Co-located waypoints: {% for waypoint in co_located_waypoints %} {{waypoint}}, {% endfor %}<br />
+<hr />
+{% if shipyard %}
+<h1>shipyard</h1>
+<table>
+    <thead>
+        <tr>
+            <th>Ship Type</th>
+            <th>Cost</th>
+        </tr>
+    </thead>
+    {% for ship in shipyard_types %}
+    <tr>
+        <td>{{ship.ship_symbol}} </td>
+        <td> {{ship.cost}}</td>
+    </tr>
+    {% endfor %}
+</table>
+<hr />
+{% endif %}
+{% if market %}
+<h1>market</h1>
+last checked = {{market_checked_ts}}<br />
+<div class="table-responsive">
+    <table class="table table-bordered" data-bs-theme="dark">
+        <thead>
+            <tr>
+                <th>trade_symbol</th>
+                <th>Supply</th>
+                <th>buy price</th>
+                <th>sell value</th>
+                <th>depth</th>
+                <th>Import/Export</th>
+                <th>Activity</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in market_items %}
+            <tr>
+                <td>{{item.trade_symbol}}</td>
+                <td>{{item.supply}}</td>
+                <td>{{item.buy_price}}</td>
+                <td>{{item.sell_price}}</td>
+                <td>{{item.depth}}</td>
+                <td>{{item.type}}</td>
+                <td>{{item.activity}}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<hr />
+{% endif %}
+
+<!-- -- start here -- -->
+<div class="container">
+
+    <div class="row">
+        {% for ship in present_ships %}
+        <div class="col-2">
+            <div class="box">
+                <div>{{ship}}</div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- -- end here -- -->
+</div>
