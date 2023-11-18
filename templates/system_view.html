@@ -15,6 +15,10 @@
 
         }
 
+        a {
+            color: #7f7;
+        }
+
         .large-square {
 
             height: 800px;
@@ -105,93 +109,46 @@
                             loading...
                         </div>
                         <div class="col-sm-12" style="margin-top:20px;">
-                            <div class="small-square" id="object_history">
-                                <h1>list recent transactions & market changes</h1>
-                                <div class="table-responsive">
-                                    <table class="table table-bordered" data-bs-theme="dark">
-                                        <thead>
-                                            <tr>
-                                                <th>Date</th>
-                                                <th>Product</th>
-                                                <th>Action</th>
-                                                <th>Quantity</th>
-                                                <th>Price</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr>
-                                                <td>2023-11-17 17:16:00</td>
-                                                <td>SHIP_PARTS</td>
-                                                <td>SELL</td>
-                                                <td>10</td>
-                                                <td>349980</td>
-                                            </tr>
-                                            <tr>
-                                                <td>2023-11-17 17:16:00</td>
-                                                <td>SHIP_PARTS</td>
-                                                <td>SELL</td>
-                                                <td>10</td>
-                                                <td>349980</td>
-                                            </tr>
-                                            <tr>
-                                                <td>2023-11-17 16:38:00</td>
-                                                <td>SHIP_PLATING</td>
-                                                <td>SELL</td>
-                                                <td>10</td>
-                                                <td>354630</td>
-                                            </tr>
-                                            <tr>
-                                                <td>2023-11-17 16:38:00</td>
-                                                <td>SHIP_PLATING</td>
-                                                <td>SELL</td>
-                                                <td>10</td>
-                                                <td>356390</td>
-                                            </tr>
-                                            <tr>
-                                                <td>2023-11-17 16:38:00</td>
-                                                <td>SHIP_PLATING</td>
-                                                <td>SELL</td>
-                                                <td>10</td>
-                                                <td>357820</td>
-                                            </tr>
-                                            <tr>
-                                                <td>2023-11-17 16:38:00</td>
-                                                <td>SHIP_PLATING</td>
-                                                <td>SELL</td>
-                                                <td>10</td>
-                                                <td>358980</td>
-                                            </tr>
-                                            <tr>
-                                                <td>2023-11-17 16:38:00</td>
-                                                <td>SHIP_PLATING</td>
-                                                <td>SELL</td>
-                                                <td>10</td>
-                                                <td>359920</td>
-                                            </tr>
-                                            <tr>
-                                                <td>2023-11-17 16:38:00</td>
-                                                <td>SHIP_PLATING</td>
-                                                <td>SELL</td>
-                                                <td>10</td>
-                                                <td>360690</td>
-                                            </tr>
-                                            <tr>
-                                                <td>2023-11-17 16:38:00</td>
-                                                <td>SHIP_PLATING</td>
-                                                <td>SELL</td>
-                                                <td>10</td>
-                                                <td>361310</td>
-                                            </tr>
-                                            <tr>
-                                                <td>2023-11-17 14:04:00</td>
-                                                <td>SHIP_PLATING</td>
-                                                <td>SELL</td>
-                                                <td>10</td>
-                                                <td>360320</td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
+                            <div class="small-square" id="object_detail">
+                                <h1>CTRI-U--1</h1>COMMAND FRIGATE<br />
+
+                                <p>142/ 400 fuel
+                                    0/35 cargo
+                                </p>
+
+                                <p>loadout -
+                                    {MOUNT_SENSOR_ARRAY_II,MOUNT_GAS_SIPHON_II,MOUNT_MINING_LASER_II,MOUNT_SURVEYOR_II}
+                                </p>
+                                <p>internals -
+                                    {MODULE_CARGO_HOLD_II,MODULE_CREW_QUARTERS_I,MODULE_CREW_QUARTERS_I,MODULE_MINERAL_PROCESSOR_I,MODULE_GAS_PROCESSOR_I}
+                                </p>
+
+                                cooldown remaining: <br />
+
+                                <p>system: X1-U49
+                                    waypoint: H53</p>
+                                <hr />
+                                advanced circuitry - 10<br />
+
+                                <hr />
+
+                                current behaviour: RECEIVE_AND_FULFILL, {
+                                "market_wp": "X1-U49-H53",
+                                "asteroid_wp": "X1-U49-B17"
+                                }
+
+                                recently completed tasks
+                                'TAKE_FROM_EXTRACTORS_AND_GO_SELL_9'
+                                {
+                                "priority": 4,
+                                "market_wp": "X1-U49-H53",
+                                "asteroid_wp": "X1-U49-FA4A",
+                                "cargo_to_receive": [
+                                "ALUMINUM_ORE",
+                                "COPPER_ORE",
+                                "IRON_ORE"
+                                ]
+                                }
                             </div>
                         </div>
                     </div>
@@ -218,6 +175,10 @@
         url = "/query/" + query
         const parser = new DOMParser();
 
+        // alert both these parameters]
+        console.log("[" + query + "] [" + return_div_symbol + "]")
+
+
         fetch(url)
             .then(response => response.text())
             .then(html => {
@@ -231,6 +192,9 @@
     //on mouseover change the contents of 'controlinput' to the id of the circle
     for (var i = 0; i < circles.length; i++) {
         circles[i].addEventListener("mouseover", function () {
+            if (this.id != "") { document.getElementById("controlinput").value = this.id; }
+        });
+        circles[i].addEventListener("click", function () {
             if (this.id != "") { document.getElementById("controlinput").value = this.id; }
         });
     }

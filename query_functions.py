@@ -1,6 +1,6 @@
 from straders_sdk.client_postgres import SpaceTradersPostgresClient as SpaceTraders
 from straders_sdk.models import Waypoint
-from straders_sdk.utils import waypoint_slicer
+from straders_sdk.utils import waypoint_slicer, try_execute_select
 from datetime import datetime, timedelta
 
 
@@ -46,13 +46,54 @@ def query_waypoint(client: SpaceTraders, waypoint: str):
             shipyard_obj.append({"ship_symbol": ship.name, "cost": ship.purchase_price})
 
         return_obj["shipyard_types"] = shipyard_obj
+    ships_at_waypoint_sql = """select s.ship_symbol, ship_role, sfl.frame_symbol
+, round((s.cargo_in_use::numeric/greatest(s.cargo_capacity,1))*100,2) as cargo_percentage
+, s.cargo_capacity
+from ships s 
+join ship_nav sn on s.ship_symbol = sn.ship_symbol
+join ship_frame_links sfl on sfl.ship_symbol = s.ship_symbol
+where waypoint_symbol = %s
+"""
+    results = try_execute_select(
+        client.connection, ships_at_waypoint_sql, (waypoint.symbol,)
+    )
+    return_obj["present_ships"] = []
+    for result in results:
+        # ship suffix is result 0 - the length of current_agent_symbol
 
-    return_obj["present_ships"] = [
-        "2A⛵⛏️ 65%/10",
-        "2D⛵⛏️ 0%/10",
-        "26⛵⛏️ 80%/10",
-        "23⛵⛏️ 100%/10",
-        "4A⛵⛏️ 0%/10",
-    ]
+        ship_suffix = result[0][len(client.current_agent_symbol) + 1 :]
+        return_obj["present_ships"].append(
+            {
+                "ship_symbol": f"{result[0]}",
+                "display_string": f"{ship_suffix}{map_role(result[1])}{map_frame(result[2])} {result[3]}%/{result[4]}",
+            }
+        )
 
     return return_obj
+
+
+def query_ship(client: SpaceTraders, ship_symbol: str):
+    return {}
+
+
+def map_role(role) -> str:
+    roles = {
+        "COMMAND": "👑",
+        "EXCAVATOR": "⛏️",
+        "HAULER": "🚛",
+        "SATELLITE": "🛰️",
+        "REFINERY": "⚙️",
+    }
+    return roles.get(role, role)
+
+
+def map_frame(role) -> str:
+    frames = {
+        "FRAME_DRONE": "⛵",
+        "FRAME_PROBE": "⛵",
+        "FRAME_MINER": "🚤",
+        "FRAME_LIGHT_FREIGHTER": "🚤",
+        "FRAME_FRIGATE": "🚤",
+        "FRAME_HEAVY_FREIGHTER": "⛴️",
+    }
+    return frames.get(role, role)
