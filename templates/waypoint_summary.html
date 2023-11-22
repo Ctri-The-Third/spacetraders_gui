@@ -1,10 +1,15 @@
 <h1><a href="#" onclick="fetch_block('{{waypoint_symbol}}','object_summary'); return false;">{{waypoint_symbol}}</a>
     {{waypoint_type}} </h1>
 <p>{% for trait in waypoint_traits %} {{trait}}, {% endfor %}</p>
+
+
+{% if co_located_waypoints %}
 Co-located waypoints: {% for waypoint in co_located_waypoints %}
+
+
 <a href="#" onclick="fetch_block('{{waypoint}}', 'object_summary'); return false;">{{waypoint}}</a>,
 
-{% endfor %}<br />
+{% endfor %}{% endif %}<br />
 <hr />
 {% if shipyard %}
 <h1>shipyard</h1>
@@ -25,7 +30,8 @@ Co-located waypoints: {% for waypoint in co_located_waypoints %}
 <hr />
 {% endif %}
 {% if market %}
-<h1>market</h1>
+<h1>Market [<a href="#" onclick="fetch_block('MKT-{{waypoint_symbol}}', 'object_detail'); return false;">View</a>],
+</h1>
 last checked = {{market_checked_ts}}<br />
 <div class="table-responsive">
     <table class="table table-bordered" data-bs-theme="dark">

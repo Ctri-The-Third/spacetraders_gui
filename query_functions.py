@@ -19,7 +19,8 @@ def query_waypoint(client: SpaceTraders, waypoint: str):
     colocated_waypoints = client.find_waypoints_by_coords(
         system_s, waypoint.x, waypoint.y
     )
-    return_obj["co_located_waypoints"] = [w for w in colocated_waypoints]
+    if len(colocated_waypoints) > 1:
+        return_obj["co_located_waypoints"] = [w for w in colocated_waypoints]
     if waypoint.has_market:
         market_obj = []
         market = client.system_market(waypoint)
@@ -73,6 +74,10 @@ where waypoint_symbol = %s
 
 
 def query_ship(client: SpaceTraders, ship_symbol: str):
+    return {}
+
+
+def query_market(cliet: SpaceTraders, market_symbol: str):
     return {}
 
 
