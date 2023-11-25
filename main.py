@@ -10,7 +10,7 @@ from straders_sdk.client_postgres import SpaceTradersPostgresClient as SpaceTrad
 from straders_sdk.models import Waypoint
 from flask import Flask, render_template
 from datetime import datetime, timedelta
-from query_functions import query_waypoint, query_ship, query_market
+from query_functions import query_waypoint, query_ship, query_market, query_system
 
 config_file_name = "user.json"
 saved_data = json.load(open(config_file_name, "r+"))
@@ -34,12 +34,18 @@ def query(string):
     ):
         params = query_market(st, string)
         return render_template("market_summary.html", **params)
+    elif string[0:5] == "LOGS-" and st.ships_view_one(string[5:]):
+        params = query_ship_logs(st, string)
+        return render_template("ship_logs.html", **params)
     wayp = st.waypoints_view_one(waypoint_slicer(string), string)
     if wayp:
         params = query_waypoint(st, string)
 
         return render_template("waypoint_summary.html", **params)
-
+    syst = st.systems_view_one(string)
+    if syst:
+        params = query_system(st, string)
+        return render_template("system_view.html", **params)
     ship = st.ships_view_one(string)
     if ship:
         params = query_ship(st, string)
@@ -50,44 +56,7 @@ def query(string):
 
 @app.route("/")
 def index():
-    syst = st.systems_view_one("X1-YG29")
-    wayps = st.waypoints_view(syst.symbol)
-    waypoints = []
-    min_x = 0
-    min_y = 0
-    max_x = 0
-    max_y = 0
-
-    for wayp_symbol, wayp in wayps.items():
-        wayp: Waypoint
-        if wayp.type == "MOON":
-            continue
-        waypoints.append(
-            {
-                "symbol": wayp_symbol,
-                "type": wayp.type,
-                "x": wayp.x,
-                "y": wayp.y,
-                "distance": (wayp.x**2 + wayp.y**2) ** 0.5,
-            }
-        )
-        if wayp.x < min_x:
-            min_x = wayp.x
-        if wayp.y < min_y:
-            min_y = wayp.y
-        if wayp.x > max_x:
-            max_x = wayp.x
-        if wayp.y > max_y:
-            max_y = wayp.y
-    for wayp in waypoints:
-        wayp["x"] -= min_x + (max_x / 2)
-        wayp["y"] -= min_y + (max_y / 2)
-    centre = {
-        "x": -min_x - (max_x / 2),
-        "y": -min_y - (max_y / 2),
-        "symbol": syst.symbol,
-    }
-    return render_template("main_page.html", waypoints=waypoints, centre=centre)
+    return render_template("main_page.html", **query_system(st, "X1-YG29"))
 
 
 if __name__ == "__main__":

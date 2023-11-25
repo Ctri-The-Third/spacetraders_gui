@@ -1,0 +1,26 @@
+<svg id="systemView"
+    style="border:3px solid green;  background-color:#333; width:100%; height:100%; border-radius: 17px;"
+    onmousedown="startDrag(event)" , onmousemove="drag(event)" , onmouseup="endDrag(event)" ,
+    onmouseleave="endDrag(event)">
+
+    <circle cx="{{centre.x}}" cy="{{centre.y}}" r="7" fill="yellow" id="{{centre.symbol}}" class="draggable"></circle>
+    {% if waypoints %}
+    {% for w in waypoints %}
+
+    {% if w.type in ('PLANET', 'GAS_GIANT', 'ASTEROID_BASE', 'JUMP_GATE') %}
+    <circle cx="{{centre.x}}" cy="{{centre.y}}" r="{{w.distance}}" stroke="#444" stroke-width="1" fill="none"
+        class="draggable">
+    </circle>
+    <circle cx="{{w.x}}" cy="{{w.y}}" r="5" fill="red" id="{{w.symbol}}" class="draggable"></circle>
+    {% elif w.waypoint_type == 'ASTEROID' %}
+    <circle cx="{{w.x}}" cy="{{w.y}}" r="5" fill="orange" id="{{w.symbol}}" class="draggable">
+    </circle>
+
+    {% else %}
+    <circle cx="{{w.x}}" cy="{{w.y}}" r="5" fill="green" id="{{w.symbol}}" class="draggable">
+    </circle>
+    {% endif %}
+
+    {% endfor %}
+    {% endif %}
+</svg>

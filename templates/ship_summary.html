@@ -1,40 +1,39 @@
-<h1><a href="#" onclick="fetch_block('CTRI-U--1','object_summary'); return false;">CTRI-U--1</a>
-    <h1>CTRI-U--1</h1>COMMAND FRIGATE<br />
+<h1><a href="#" onclick="fetch_block('{{ship_symbol}}','object_summary'); return false;">{{ship_symbol}}</a>
+</h1><br />
+<p>{{ship_role}} {{ship_frame}} [{{cur_fuel}} /{{max_fuel}} fuel] [{{cur_cargo}} /{{max_cargo}} cargo] [<a href="#"
+        onclick="fetch_block('LOGS-{{ship_symbol}}','object_detail'); return false;">view logs</a>]
+    <br />
+    system: [<a href="#" onClick="fetch_block('{{current_system}}','mainPanel');  return false;">{{current_system}}</a>]
+    - waypoint:
+    [
+    {{current_waypoint_suffix}}]
+</p>
 
-    <p>142/ 400 fuel
-        0/35 cargo
-    </p>
+<p>loadout - {% for m in mounts %}{{m}}, {% endfor %}<br />
+    internals - {% for m in modules %}{{m}}, {% endfor %} </p>
 
-    <p>loadout -
-        {MOUNT_SENSOR_ARRAY_II,MOUNT_GAS_SIPHON_II,MOUNT_MINING_LASER_II,MOUNT_SURVEYOR_II}
-    </p>
-    <p>internals -
-        {MODULE_CARGO_HOLD_II,MODULE_CREW_QUARTERS_I,MODULE_CREW_QUARTERS_I,MODULE_MINERAL_PROCESSOR_I,MODULE_GAS_PROCESSOR_I}
-    </p>
+cooldown remaining: <br />
+travel time remaining: <br />
+<hr />
 
-    cooldown remaining: <br />
+[advanced circuitry] - 10<br />
 
-    <p>system: X1-U49
-        waypoint: H53</p>
-    <hr />
-    advanced circuitry - 10<br />
+<hr />
 
-    <hr />
+current [<a href="#">behaviour</a>]: RECEIVE_AND_FULFILL, {
+"market_wp": "X1-U49-H53",
+"asteroid_wp": "X1-U49-B17"
+}
 
-    current behaviour: RECEIVE_AND_FULFILL, {
-    "market_wp": "X1-U49-H53",
-    "asteroid_wp": "X1-U49-B17"
-    }
-
-    recently completed tasks
-    'TAKE_FROM_EXTRACTORS_AND_GO_SELL_9'
-    {
-    "priority": 4,
-    "market_wp": "X1-U49-H53",
-    "asteroid_wp": "X1-U49-FA4A",
-    "cargo_to_receive": [
-    "ALUMINUM_ORE",
-    "COPPER_ORE",
-    "IRON_ORE"
-    ]
-    }
+recently completed [<a href="#">tasks</a>]
+'TAKE_FROM_EXTRACTORS_AND_GO_SELL_9'
+{
+"priority": 4,
+"market_wp": "X1-U49-H53",
+"asteroid_wp": "X1-U49-FA4A",
+"cargo_to_receive": [
+"ALUMINUM_ORE",
+"COPPER_ORE",
+"IRON_ORE"
+]
+}
