@@ -10,7 +10,13 @@ from straders_sdk.client_postgres import SpaceTradersPostgresClient as SpaceTrad
 from straders_sdk.models import Waypoint
 from flask import Flask, render_template
 from datetime import datetime, timedelta
-from query_functions import query_waypoint, query_ship, query_market, query_system
+from query_functions import (
+    query_waypoint,
+    query_ship,
+    query_market,
+    query_system,
+    query_all_ships,
+)
 
 config_file_name = "user.json"
 saved_data = json.load(open(config_file_name, "r+"))
@@ -37,10 +43,17 @@ def query(string):
     elif string[0:5] == "LOGS-" and st.ships_view_one(string[5:]):
         params = query_ship_logs(st, string)
         return render_template("ship_logs.html", **params)
+    elif string == "HQ_SYSTEM":
+        hq = st.view_my_self().headquarters
+        string = waypoint_slicer(hq)
+    elif string == "ALL_SHIPS":
+        params = query_all_ships(st)
+        print(params)
+        return render_template("all_ships.html", **params)
+
     wayp = st.waypoints_view_one(waypoint_slicer(string), string)
     if wayp:
         params = query_waypoint(st, string)
-
         return render_template("waypoint_summary.html", **params)
     syst = st.systems_view_one(string)
     if syst:

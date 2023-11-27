@@ -1,5 +1,6 @@
 from straders_sdk.client_postgres import SpaceTradersPostgresClient as SpaceTraders
 from straders_sdk.models import Waypoint
+from straders_sdk.ship import Ship
 from straders_sdk.utils import waypoint_slicer, try_execute_select, waypoint_suffix
 from datetime import datetime, timedelta
 
@@ -177,6 +178,63 @@ def query_system(st: SpaceTraders, system_symbol: str):
         "symbol": syst.symbol,
     }
     return {"waypoints": waypoints, "centre": centre}
+
+
+def query_all_ships(
+    st: SpaceTraders, partition_by_role: bool = True, partition_by_waypoint: bool = True
+):
+    # we need a ship's name, fuel, cargo, location / nav details, and behaviour. let's block em into rectangles. maybe 5 in a large?
+
+    if partition_by_role:
+        all_ships = st.ships_view().values()
+
+        sorted_ships = {
+            "COMMAND": [_summarise_ship(s) for s in all_ships if s.role == "COMMAND"],
+            "TRANSPORT": [
+                _summarise_ship(s) for s in all_ships if s.role == "TRANSPORT"
+            ],
+            "SATELLITE": [
+                _summarise_ship(s) for s in all_ships if s.role == "SATELLITE"
+            ],
+            "HAULER": [_summarise_ship(s) for s in all_ships if s.role == "HAULER"],
+            "REFINERY": [_summarise_ship(s) for s in all_ships if s.role == "REFINERY"],
+            "EXTRACTOR": [
+                _summarise_ship(s)
+                for s in all_ships
+                if s.role == "EXCAVATOR" and s.can_extract
+            ],
+            "SIPHONER": [
+                _summarise_ship(s)
+                for s in all_ships
+                if s.role == "EXCAVATOR" and s.can_siphon
+            ],
+        }
+    elif partition_by_waypoint:
+        keys, all_ships = st.ships_view().items()
+        sorted_ships = {}
+        for ship in all_ships:
+            ship: Ship
+            sorted_ships[ship.nav.waypoint_symbol] = _summarise_ship(ship)
+
+    return {"ships": sorted_ships}
+
+
+def _summarise_ship(ship: Ship) -> dict:
+    if ship.nav.status == "IN_TRANSIT":
+        nav_string = f"{ship.nav.origin.symbol} -> {ship.nav.destination.symbol}"
+    else:
+        nav_string = ship.nav.destination.symbol
+    return {
+        "symbol": ship.name,
+        "role": ship.role,
+        "frame": ship.frame.name,
+        "cargo": ship.cargo_units_used,
+        "cargo_max": ship.cargo_capacity,
+        "fuel": ship.fuel_current,
+        "fuel_max": ship.fuel_capacity,
+        "nav": nav_string,
+        "nav_status": ship.nav.status,
+    }
 
 
 def map_role(role) -> str:

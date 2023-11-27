@@ -167,7 +167,11 @@
                         <button class="btn btn-outline-secondary" type="button" id="requestButton">Inspect</button>
                     </div>
                     <input type="text" class="form-control" placeholder="X1-U49-A1" id="controlinput"> </input>
-
+                    <div class="input-group-append">
+                        <button class="btn btn-outline-secondary" type="button" id="showHQSystem">HQ System</button>
+                        <button class="btn btn-outline-secondary" type="button" id="showAllShips">Ships</button>
+                        <button class="btn btn-outline-secondary" type="button" id="showSomeGraphs">Graphs</button>
+                    </div>
                 </div>
 
             </div>
@@ -248,6 +252,22 @@
         query = document.getElementById("controlinput").value;
         fetch_block(query, "object_summary");
     });
+
+    document.getElementById("showHQSystem").addEventListener("click", function () {
+        query = "HQ_SYSTEM";
+        fetch_block(query, "mainPanel");
+    });
+
+    document.getElementById("showAllShips").addEventListener("click", function () {
+        query = "ALL_SHIPS";
+        fetch_block(query, "mainPanel");
+    });
+
+    document.getElementById("showSomeGraphs").addEventListener("click", function () {
+        query = "SOME_GRAPHS";
+        fetch_block(query, "mainPanel");
+    });
+
 
     // click an inspect
     function fetch_block(query, return_div_symbol) {

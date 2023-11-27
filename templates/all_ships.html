@@ -1,0 +1,13 @@
+<h1> All Ships </h1>
+All ships, grouped by [Type], or [Waypoint]
+
+{% for ship_group, ships in ships.items() %}
+<h3> {{ship_group}} </h3>
+{% for ship in ships %}
+
+<p> {{ ship.name }} - {{ ship.type }}, {{ ship.waypoint }} </p>
+{% endfor %}
+{% endfor %}
+{% if ships %}
+there's at least something here!
+{% endif %}
