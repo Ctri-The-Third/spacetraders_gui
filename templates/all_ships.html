@@ -1,12 +1,32 @@
+<style>
+    .ship-box {
+        border: 1px solid #0e0;
+        margin: 5px;
+        padding: 5px;
+        font-size: small;
+        overflow: hidden;
+    }
+</style>
 <h1> All Ships </h1>
 All ships, grouped by [Type], or [Waypoint]
 
 {% for ship_group, ships in ships.items() %}
-<h3> {{ship_group}} </h3>
-{% for ship in ships %}
 
-<p> {{ ship.name }} - {{ ship.type }}, {{ ship.waypoint }} </p>
-{% endfor %}
+<h3> {{ship_group}} </h3>
+<div class="conatiner">
+    <div class="row">
+
+        {% for ship in ships %}
+        <div class=" col-lg-2 col-md-4 col-sm-6  ship-box">
+            {{ ship.symbol }} - {{ ship.role_emoji }} {{ship.frame_emoji}} <br />
+            {{ ship.nav }} <br />
+            📦{{ship.cargo}}/{{ship.cargo_max}} - {{ship.fuel}}/{{ship.fuel_max}}⛽
+            {% if ship.behaviour %}<br />{{ship.behaviour}}{% endif %}
+        </div>
+
+        {% endfor %}
+    </div>
+</div>
 {% endfor %}
 {% if ships %}
 there's at least something here!

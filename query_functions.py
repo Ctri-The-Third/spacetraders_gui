@@ -184,27 +184,49 @@ def query_all_ships(
     st: SpaceTraders, partition_by_role: bool = True, partition_by_waypoint: bool = True
 ):
     # we need a ship's name, fuel, cargo, location / nav details, and behaviour. let's block em into rectangles. maybe 5 in a large?
-
+    sql = """with data as (
+select ship_symbol, max(event_timestamp) as timestamp
+from logging l 
+where event_name = 'BEGIN_BEHAVIOUR_SCRIPT'
+and event_timestamp >= now() - interval '1 day'
+group by 1 
+)
+select l.ship_symbol, event_params ->> 'script_name' as script_name from logging l join data d on l.event_timestamp = d.timestamp and d.ship_symbol = l.ship_symbol
+order by 1 """
+    results = try_execute_select(st.connection, sql, ())
+    behaviours = {r[0]: r[1] for r in results}
     if partition_by_role:
         all_ships = st.ships_view().values()
 
         sorted_ships = {
-            "COMMAND": [_summarise_ship(s) for s in all_ships if s.role == "COMMAND"],
+            "COMMAND": [
+                _summarise_ship(s, behaviours) for s in all_ships if s.role == "COMMAND"
+            ],
             "TRANSPORT": [
-                _summarise_ship(s) for s in all_ships if s.role == "TRANSPORT"
+                _summarise_ship(s, behaviours)
+                for s in all_ships
+                if s.role == "TRANSPORT"
             ],
             "SATELLITE": [
-                _summarise_ship(s) for s in all_ships if s.role == "SATELLITE"
+                _summarise_ship(s, behaviours)
+                for s in all_ships
+                if s.role == "SATELLITE"
             ],
-            "HAULER": [_summarise_ship(s) for s in all_ships if s.role == "HAULER"],
-            "REFINERY": [_summarise_ship(s) for s in all_ships if s.role == "REFINERY"],
+            "HAULER": [
+                _summarise_ship(s, behaviours) for s in all_ships if s.role == "HAULER"
+            ],
+            "REFINERY": [
+                _summarise_ship(s, behaviours)
+                for s in all_ships
+                if s.role == "REFINERY"
+            ],
             "EXTRACTOR": [
-                _summarise_ship(s)
+                _summarise_ship(s, behaviours)
                 for s in all_ships
                 if s.role == "EXCAVATOR" and s.can_extract
             ],
             "SIPHONER": [
-                _summarise_ship(s)
+                _summarise_ship(s, behaviours)
                 for s in all_ships
                 if s.role == "EXCAVATOR" and s.can_siphon
             ],
@@ -214,26 +236,35 @@ def query_all_ships(
         sorted_ships = {}
         for ship in all_ships:
             ship: Ship
-            sorted_ships[ship.nav.waypoint_symbol] = _summarise_ship(ship)
+            sorted_ships[ship.nav.waypoint_symbol] = _summarise_ship(ship, behaviours)
 
     return {"ships": sorted_ships}
 
 
-def _summarise_ship(ship: Ship) -> dict:
+def _summarise_ship(ship: Ship, most_recent_behaviours: dict) -> dict:
+    most_recent_behaviour = most_recent_behaviours.get(ship.name, None)
     if ship.nav.status == "IN_TRANSIT":
-        nav_string = f"{ship.nav.origin.symbol} -> {ship.nav.destination.symbol}"
+        if waypoint_slicer(ship.nav.origin.symbol) == waypoint_slicer(
+            ship.nav.destination.symbol
+        ):
+            nav_string = f"🌍{waypoint_suffix(ship.nav.origin.symbol)} -> 🌎{waypoint_suffix(ship.nav.destination.symbol)}"
+        else:
+            nav_string = f"🌍{ship.nav.origin.symbol} -> 🌎{ship.nav.destination.symbol}"
     else:
-        nav_string = ship.nav.destination.symbol
+        nav_string = f"🌏{waypoint_suffix(ship.nav.waypoint_symbol)}"
     return {
-        "symbol": ship.name,
+        "symbol": waypoint_suffix(ship.name),
         "role": ship.role,
         "frame": ship.frame.name,
+        "frame_emoji": map_frame(ship.frame.symbol),
+        "role_emoji": map_role(ship.role),
         "cargo": ship.cargo_units_used,
         "cargo_max": ship.cargo_capacity,
         "fuel": ship.fuel_current,
         "fuel_max": ship.fuel_capacity,
         "nav": nav_string,
         "nav_status": ship.nav.status,
+        "behaviour": most_recent_behaviour,
     }
 
 
