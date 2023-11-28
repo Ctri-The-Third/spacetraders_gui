@@ -180,37 +180,18 @@
             <div class="col-lg-8 col-md-8 col-sm-12">
                 <div class="large-square" id="mainPanelWrapper">
                     <div id="mainPanel" style="height:100%;">
-                        <!-- should be a direct copy of system_view.html, which is the authority here-->
 
-                        <svg id="systemView"
-                            style="border:3px solid green;  background-color:#333; width:100%; height:100%; border-radius: 17px;"
-                            onmousedown="startDrag(event)" , onmousemove="drag(event)" , onmouseup="endDrag(event)" ,
-                            onmouseleave="endDrag(event)">
+                        <h2> Welcome to C'tri's SpaceTraders UI. </h2> <br />
 
-                            <circle cx="{{centre.x}}" cy="{{centre.y}}" r="7" fill="yellow" id="{{centre.symbol}}"
-                                class="draggable"></circle>
-                            {% if waypoints %}
-                            {% for w in waypoints %}
+                        <a href="https://spacetraders.io"> What's Space Traders?</a> <br />
+                        <p>SpaceTraders is an API-based game where you acquire and manage a fleet of ships to explore,
+                            trade, and fight your way across the galaxy. Use any programming language with our API to
+                            control the most powerful fleet in universe.
 
-                            {% if w.type in ('PLANET', 'GAS_GIANT', 'ASTEROID_BASE', 'JUMP_GATE') %}
-                            <circle cx="{{centre.x}}" cy="{{centre.y}}" r="{{w.distance}}" stroke="#444"
-                                stroke-width="1" fill="none" class="draggable">
-                            </circle>
-                            <circle cx="{{w.x}}" cy="{{w.y}}" r="5" fill="red" id="{{w.symbol}}" class="draggable">
-                            </circle>
-                            {% elif w.waypoint_type == 'ASTEROID' %}
-                            <circle cx="{{w.x}}" cy="{{w.y}}" r="5" fill="orange" id="{{w.symbol}}" class="draggable">
-                            </circle>
+                            To play here, enter your token below.</p>
+                        <textarea id="sTradersToken" name="token" rows="8" cols="80" placeholder="token"></textarea>
+                        <button id="loginButton" value="Login">Save token locally</button>
 
-                            {% else %}
-                            <circle cx="{{w.x}}" cy="{{w.y}}" r="5" fill="green" id="{{w.symbol}}" class="draggable">
-                            </circle>
-                            {% endif %}
-
-                            {% endfor %}
-                            {% endif %}
-                        </svg>
-                        <!-- end of system_view.html-->
 
                     </div>
                 </div>
@@ -234,18 +215,7 @@
 </body>
 
 <script type="text/javascript">
-    var svg = document.getElementById("systemView");
-    var circles = svg.getElementsByTagName("circle");
-    for (var i = 0; i < circles.length; i++) {
-        circles[i].addEventListener("mouseover", function () {
-            if (this.id != "") { document.getElementById("controlinput").value = this.id; }
-        });
-        circles[i].addEventListener("click", function () {
-            if (this.id != "") {
-                fetch_block(this.id, "object_summary");
-            }
-        });
-    }
+
 
 
     document.getElementById("requestButton").addEventListener("click", function () {
@@ -271,7 +241,7 @@
 
     // click an inspect
     function fetch_block(query, return_div_symbol) {
-
+        //alert("fetching " + query + " into " + return_div_symbol);
         url = "/query/" + query
         const parser = new DOMParser();
 
@@ -279,7 +249,7 @@
         console.log("[" + query + "] [" + return_div_symbol + "]")
 
 
-        fetch(url)
+        fetch(url, { method: 'GET', headers: { 'Authorization': 'Bearer ' + localStorage.getItem("SpaceTradersToken") } })
             .then(response => response.text())
             .then(html => {
                 var parsedHtml = parser.parseFromString(html, 'text/html');
@@ -328,6 +298,30 @@
             div.style.removeProperty('display');
         }
     }
+</script>
+
+<script type="text/javascript">
+    // Function to load the value from local storage
+    function loadValue() {
+        // Assuming 'sTradersTokenContent' is the key for the content in local storage
+        var storedValue = localStorage.getItem('SpaceTradersToken');
+        if (storedValue) {
+            // If there is a value stored, set it as the textarea's content
+            document.getElementById('sTradersToken').value = storedValue;
+        }
+
+    };
+
+
+    // Call loadValue on page load
+    window.onload = loadValue;
+
+    // Optionally, save the textarea content back to local storage on change or other events
+    document.getElementById('sTradersToken').addEventListener('input', function () {
+        localStorage.setItem('SpaceTradersToken', this.value);
+        document.getElementById("loginButton").innerHTML = "Saved! (click to overwrite)";
+
+    });
 </script>
 
 </html>

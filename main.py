@@ -4,11 +4,12 @@
 
 # display discovered shipyards & market info (if available)
 import psycopg2
+import base64
 import json
 from straders_sdk.utils import try_execute_select, waypoint_slicer
-from straders_sdk.client_postgres import SpaceTradersPostgresClient as SpaceTraders
+from straders_sdk import SpaceTraders
 from straders_sdk.models import Waypoint
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 from datetime import datetime, timedelta
 from query_functions import (
     query_waypoint,
@@ -26,15 +27,14 @@ db_name = saved_data.get("db_name", None)
 db_user = saved_data.get("db_user", None)
 db_pass = saved_data.get("db_pass", None)
 
-st = SpaceTraders(db_host, db_name, db_user, db_pass, "CTRI-U-", db_port)
-connection = st.connection
-cursor = connection.cursor()
 
 app = Flask(__name__)
+users_and_clients = {}
 
 
 @app.route("/query/<string>")
 def query(string):
+    st = setup_st(request)
     if string[0:4] == "MKT-" and st.system_market(
         st.waypoints_view_one(waypoint_slicer(string[4:]), string[4:])
     ):
@@ -67,9 +67,38 @@ def query(string):
     # if it matches a ship - go get the ship summary
 
 
+def setup_st(request) -> SpaceTraders:
+    # Split the JWT into its three components
+    token = request.headers.get("Authorization")
+    if not token:
+        return None
+    # take the "Bearer " off the front
+    token = token[7:]
+    header_b64, payload_b64, signature = token.split(".")
+
+    # Base64 decode the header and payload
+    header = json.loads(base64.urlsafe_b64decode(header_b64 + "=="))
+    payload = json.loads(base64.urlsafe_b64decode(payload_b64 + "=="))
+
+    identifier = payload.get("identifier", None)
+    if users_and_clients.get(identifier, None):
+        return users_and_clients.get(identifier, None)
+    st = SpaceTraders(
+        token,
+        db_host=db_host,
+        db_name=db_name,
+        db_user=db_user,
+        db_pass=db_pass,
+        current_agent_symbol=identifier,
+        db_port=db_port,
+    )
+    users_and_clients[identifier] = st
+    return st
+
+
 @app.route("/")
 def index():
-    return render_template("main_page.html", **query_system(st, "X1-YG29"))
+    return render_template("main_page.html")
 
 
 if __name__ == "__main__":
