@@ -48,7 +48,7 @@ def query(string):
         string = waypoint_slicer(hq)
     elif string == "ALL_SHIPS":
         params = query_all_ships(st)
-        print(params)
+
         return render_template("all_ships.html", **params)
 
     wayp = st.waypoints_view_one(waypoint_slicer(string), string)
