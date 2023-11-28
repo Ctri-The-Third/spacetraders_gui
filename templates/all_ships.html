@@ -3,8 +3,15 @@
         border: 1px solid #0e0;
         margin: 5px;
         padding: 5px;
-        font-size: small;
+        font-size: 10px;
+
         overflow: hidden;
+
+    }
+
+    .ship-box a {
+
+        text-decoration: none;
     }
 </style>
 <h1> All Ships </h1>
@@ -12,20 +19,29 @@ All ships, grouped by [Type], or [Waypoint]
 
 {% for ship_group, ships in ships.items() %}
 
-<h3> {{ship_group}} </h3>
+<h3> {{ship_group}} <a href="#"
+        onclick="toggle_div('ship_row_{{ship_group}}', 'ship_icon_{{ship_group}}'); return false;"
+        id="ship_icon_{{ship_group}}">🔽</a></h3>
 <div class="conatiner">
-    <div class="row">
+    <div class="row" id="ship_row_{{ship_group}}">
 
         {% for ship in ships %}
         <div class=" col-lg-2 col-md-4 col-sm-6  ship-box">
-            {{ ship.symbol }} - {{ ship.role_emoji }} {{ship.frame_emoji}} <br />
-            {{ ship.nav }} <br />
-            📦{{ship.cargo}}/{{ship.cargo_max}} - {{ship.fuel}}/{{ship.fuel_max}}⛽
-            {% if ship.behaviour %}<br />{{ship.behaviour}}{% endif %}
-        </div>
-
-        {% endfor %}
+            <a href="#" onclick="fetch_block('{{ship.full_symbol}}','object_summary'); return false;">
+                [{{ ship.symbol }}] <div style="text-align:right; float:right;">[{{ ship.role_emoji }}
+                    {{ship.frame_emoji}}]
+            </a>
+        </div><br />
+        <a href="#" onclick="fetch_block('{{ship.current_waypoint}}', 'object_summary'); return false;">{{ ship.nav
+            }}</a>
+        <br />
+        📦{{ship.cargo}}/{{ship.cargo_max}} <div style="text-align:right; float:right;">
+            {{ship.fuel}}/{{ship.fuel_max}}⛽</div>
+        {% if ship.behaviour %}<br />{{ship.behaviour}}{% endif %}
     </div>
+
+    {% endfor %}
+</div>
 </div>
 {% endfor %}
 {% if ships %}

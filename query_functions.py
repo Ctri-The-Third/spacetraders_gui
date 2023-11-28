@@ -100,14 +100,13 @@ def query_ship(client: SpaceTraders, ship_symbol: str):
     return_obj["cur_cargo"] = ship.cargo_units_used
     return_obj["max_cargo"] = ship.cargo_capacity
     return_obj["current_system"] = ship.nav.system_symbol
+    return_obj["current_waypoint"] = ship.nav.waypoint_symbol
+
     return_obj["current_waypoint_suffix"] = waypoint_suffix(ship.nav.waypoint_symbol)
     mounts = [m.name for m in ship.mounts]
     modules = [m for m in ship.modules]
     return_obj["mounts"] = mounts
     return_obj["modules"] = modules
-
-    return_obj["current_system"] = ship.nav.system_symbol
-    return_obj["current_waypoint"] = ship.nav.waypoint_symbol
 
     return_obj["cargo"] = [
         {"name": ci.name, "units": ci.units} for ci in ship.cargo_inventory
@@ -254,6 +253,7 @@ def _summarise_ship(ship: Ship, most_recent_behaviours: dict) -> dict:
         nav_string = f"🌏{waypoint_suffix(ship.nav.waypoint_symbol)}"
     return {
         "symbol": waypoint_suffix(ship.name),
+        "full_symbol": ship.name,
         "role": ship.role,
         "frame": ship.frame.name,
         "frame_emoji": map_frame(ship.frame.symbol),
@@ -264,6 +264,7 @@ def _summarise_ship(ship: Ship, most_recent_behaviours: dict) -> dict:
         "fuel_max": ship.fuel_capacity,
         "nav": nav_string,
         "nav_status": ship.nav.status,
+        "current_waypoint": ship.nav.waypoint_symbol,
         "behaviour": most_recent_behaviour,
     }
 

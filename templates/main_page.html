@@ -250,7 +250,7 @@
 
     document.getElementById("requestButton").addEventListener("click", function () {
         query = document.getElementById("controlinput").value;
-        fetch_block(query, "object_summary");
+        fetch_block(query, "mainPanel");
     });
 
     document.getElementById("showHQSystem").addEventListener("click", function () {
@@ -312,6 +312,22 @@
     //load a json blob and draw circles based on its content
 
 
+</script>
+
+<script type="text/javascript">
+
+    function toggle_div(div_id, link_id) {
+        var div = document.getElementById(div_id, link_id);
+        var link = document.getElementById(link_id);
+        if (div.style.display !== "none") {
+            link.innerHTML = "🔼";
+            div.style.display = "none";
+        }
+        else {
+            link.innerHTML = "🔽";
+            div.style.removeProperty('display');
+        }
+    }
 </script>
 
 </html>

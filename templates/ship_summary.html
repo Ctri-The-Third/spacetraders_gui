@@ -5,8 +5,8 @@
     <br />
     system: [<a href="#" onClick="fetch_block('{{current_system}}','mainPanel');  return false;">{{current_system}}</a>]
     - waypoint:
-    [
-    {{current_waypoint_suffix}}]
+    [<a href="#"
+        onClick="fetch_block('{{current_waypoint}}','object_detail');  return false;">{{current_waypoint_suffix}}</a>]
 </p>
 
 <p>loadout - {% for m in mounts %}{{m}}, {% endfor %}<br />
