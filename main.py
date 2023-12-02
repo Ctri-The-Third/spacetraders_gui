@@ -9,7 +9,7 @@ import json
 from straders_sdk.utils import try_execute_select, waypoint_slicer
 from straders_sdk import SpaceTraders
 from straders_sdk.models import Waypoint
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, send_from_directory
 from datetime import datetime, timedelta
 from query_functions import (
     query_waypoint,
@@ -18,6 +18,8 @@ from query_functions import (
     query_system,
     query_all_ships,
 )
+
+from scripts.load_graphs import load_graphs
 
 config_file_name = "user.json"
 saved_data = json.load(open(config_file_name, "r+"))
@@ -50,7 +52,6 @@ def query(string):
         params = query_all_ships(st)
 
         return render_template("all_ships.html", **params)
-
     wayp = st.waypoints_view_one(waypoint_slicer(string), string)
     if wayp:
         params = query_waypoint(st, string)
@@ -63,8 +64,24 @@ def query(string):
     if ship:
         params = query_ship(st, string)
         return render_template("ship_summary.html", **params)
+
     # if it matches a player - go get the player summary
     # if it matches a ship - go get the ship summary
+
+
+@app.route("/scripts/<script_file>")
+def fetch_script(script_file):
+    return send_from_directory("scripts", script_file)
+
+
+@app.route("/graph_template/")
+def graph_template():
+    return render_template("graph_template.html")
+
+
+@app.route("/graph_content/")
+def graph_content():
+    return load_graphs(setup_st(request))
 
 
 def setup_st(request) -> SpaceTraders:
