@@ -3,6 +3,7 @@ from straders_sdk.models import Waypoint
 from straders_sdk.ship import Ship
 from straders_sdk.utils import waypoint_slicer, try_execute_select, waypoint_suffix
 from datetime import datetime, timedelta
+from math import floor
 
 
 def query_waypoint(client: SpaceTraders, waypoint: str):
@@ -111,6 +112,23 @@ def query_ship(client: SpaceTraders, ship_symbol: str):
     return_obj["cargo"] = [
         {"name": ci.name, "units": ci.units} for ci in ship.cargo_inventory
     ]
+    return_obj["travel_time"] = ship.nav.travel_time_remaining
+    t = ship.nav.travel_time_remaining
+    return_obj[
+        "travel_time_fmt"
+    ] = f"{floor(t/3600)}h {floor((t%3600)/60)}m {floor(t%60)}s"
+    return_obj["cooldown_time"] = ship.seconds_until_cooldown
+    t = ship.seconds_until_cooldown
+    return_obj[
+        "cooldown_time_fmt"
+    ] = f"{floor(t/3600)}h {floor((t%3600)/60)}m {floor(t%60)}s"
+
+    cargo = {}
+    for ci in ship.cargo_inventory:
+        cargo[ci.symbol] = ci.units
+
+    if len(cargo) > 0:
+        return_obj["cargo"] = cargo
 
     recent_behaviour_sql = """select 
   event_params ->> 'script_name' as most_recent_behaviour
@@ -131,6 +149,17 @@ limit 1
         return_obj["regular_behaviour"] = result[2]
         return_obj["regular_behaviour_params"] = result[3]
 
+    incomplete_tasks_and_behaviours_sql = """
+    select behaviour_id, priority, behaviour_params from ship_Tasks where claimed_by = %s and completed != True
+    union
+    select behaviour_id, 99, behaviour_params from ship_behaviours where ship_symbol = %s"""
+    results = try_execute_select(
+        client.connection,
+        incomplete_tasks_and_behaviours_sql,
+        (ship_symbol, ship_symbol),
+    )
+    if len(results) > 0 and results[0][0] is not None:
+        return_obj["incomplete_tasks_and_behaviours"] = results
     return return_obj
 
 

@@ -12,29 +12,23 @@
 <p>loadout - {% for m in mounts %}{{m}}, {% endfor %}<br />
     internals - {% for m in modules %}{{m}}, {% endfor %} </p>
 
-<h3> V v . all this isn't implemented yet . v V </h3>
-cooldown remaining: <br />
-travel time remaining: <br />
+{% if travel_time > 0 or cooldown_time > 0%}
+<b> Ship availability impacted. </b><br />
+travel remaining: {{travel_time}}s ({{travel_time_fmt}}) <br />
+cooldown remaining: {{cooldown_time}} ({{cooldown_time_fmt}})<br />
+{% endif %}
+
+{% if cargo %}
 <hr />
-
-[advanced circuitry] - 10<br />
+<b> Cargo in hold</b><br />
+{% for c in cargo %}
+{{c}} - {{cargo[c]}}<br />
+{% endfor %} {% endif %}
 
 <hr />
-
-current [<a href="#">behaviour</a>]: RECEIVE_AND_FULFILL, {
-"market_wp": "X1-U49-H53",
-"asteroid_wp": "X1-U49-B17"
-}
-
-recently completed [<a href="#">tasks</a>]
-'TAKE_FROM_EXTRACTORS_AND_GO_SELL_9'
-{
-"priority": 4,
-"market_wp": "X1-U49-H53",
-"asteroid_wp": "X1-U49-FA4A",
-"cargo_to_receive": [
-"ALUMINUM_ORE",
-"COPPER_ORE",
-"IRON_ORE"
-]
-}
+[<a href="#" onClick="fetch_block('LOG_TASK/{{ship_symbol}}','object_detail');  return false;">Behaviour &
+    Tasks</a>]<br />
+{% if most_recent_behaviour %}
+Most recent behaviour: {{most_recent_behaviour}}<br />
+Started at {{most_recent_behaviour_ts}}<br />
+{% endif %}

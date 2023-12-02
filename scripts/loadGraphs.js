@@ -20,20 +20,12 @@ function fetchGraphsPage(return_div_symbol) {
                 // returns a json object of keys and values. The key is the id of the div to be updated, and the value is the plotly grpah to be rendered 
                 .then(data => {
                     // Use Plotly to plot the data
-                    data;
+                    var plotData = data.data;
+                    var plotLayout = data.layout
                     console.log(data);
-                    var layout = {
-                        title: 'Credits per hour',
-                        xaxis: {
-                            title: 'Time'
-                        },
-                        yaxis: {
-                            title: 'Credits'
-                        },
-                        template: "plotly_dark"
-                    };
 
-                    Plotly.newPlot('creditsOverTime', data, layout).then(function () {
+
+                    Plotly.newPlot('creditsOverTime', plotData, plotLayout).then(function () {
                         // Once the plot is made, apply the theme
                         var update = {
                             'layout.template': 'plotly_dark'
