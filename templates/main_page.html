@@ -221,34 +221,42 @@
 
 
 
-    document.getElementById("requestButton").addEventListener("click", function () {
+    b = document.getElementById("requestButton")
+    b.addEventListener("click", function () {
         query = document.getElementById("controlinput").value;
         fetch_block(query, "mainPanel");
-    }).addEventListener("touchstart", function () {
+    })
+    b.addEventListener("touchstart", function () {
         query = document.getElementById("controlinput").value;
         fetch_block(query, "mainPanel");
     })
 
-    document.getElementById("showHQSystem").addEventListener("click", function () {
+    b = document.getElementById("showHQSystem")
+    b.addEventListener("click", function () {
         query = "HQ_SYSTEM";
         fetch_block(query, "mainPanel");
-    }).addEventListener("touchstart", function () {
+    })
+    b.addEventListener("touchstart", function () {
         query = "HQ_SYSTEM";
         fetch_block(query, "mainPanel");
     })
 
-    document.getElementById("showAllShips").addEventListener("click", function () {
+    b = document.getElementById("showAllShips")
+    b.addEventListener("click", function () {
         query = "ALL_SHIPS";
         fetch_block(query, "mainPanel");
-    }).addEventListener("touchstart", function () {
+    })
+    b.addEventListener("touchstart", function () {
         query = "ALL_SHIPS";
         fetch_block(query, "mainPanel");
     })
 
-    document.getElementById("showSomeGraphs").addEventListener("click", function () {
+    b = document.getElementById("showSomeGraphs")
+    b.addEventListener("click", function () {
         fetchGraphsPage("mainPanel");
 
-    }).addEventListener("touchstart", function () {
+    })
+    b.addEventListener("touchstart", function () {
         fetchGraphsPage("mainPanel");
     })
 
