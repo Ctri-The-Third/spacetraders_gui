@@ -1,4 +1,5 @@
 from straders_sdk.client_postgres import SpaceTradersPostgresClient as SpaceTraders
+from straders_sdk.pathfinder import PathFinder
 from straders_sdk.models import Waypoint
 from straders_sdk.ship import Ship
 from straders_sdk.utils import waypoint_slicer, try_execute_select, waypoint_suffix
@@ -117,6 +118,14 @@ def query_ship(client: SpaceTraders, ship_symbol: str):
     return_obj[
         "travel_time_fmt"
     ] = f"{floor(t/3600)}h {floor((t%3600)/60)}m {floor(t%60)}s"
+    if ship.nav.status == "IN_TRANSIT":
+        return_obj["origin"] = ship.nav.origin.symbol
+        return_obj["origin_suffix"] = waypoint_suffix(ship.nav.origin.symbol)
+        return_obj["destination"] = ship.nav.destination.symbol
+        return_obj["destination_suffix"] = waypoint_suffix(ship.nav.destination.symbol)
+        return_obj["distance"] = round(
+            PathFinder().calc_distance_between(ship.nav.origin, ship.nav.destination), 2
+        )
     return_obj["cooldown_time"] = ship.seconds_until_cooldown
     t = ship.seconds_until_cooldown
     return_obj[

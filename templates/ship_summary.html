@@ -16,6 +16,11 @@
 <hr />
 <b> Ship availability impacts. </b><br />
 travel remaining: <span class="tickingTimer">{{travel_time}}s ({{travel_time_fmt}})</span> <br />
+{% if origin_suffix %}
+[<a href="#" onClick="fetch_block('{{origin}}','object_detail');  return false;">{{origin_suffix}}</a>]
+->
+[<a href="#" onClick="fetch_block('{{destination}}','object_detail');  return false;">{{destination_suffix}}</a>]
+{{distance}}km <br />{% endif %}
 cooldown remaining: <span class="tickingTimer">{{cooldown_time}} ({{cooldown_time_fmt}})</span><br />
 {% endif %}
 
