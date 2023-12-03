@@ -12,10 +12,11 @@
 <p>loadout - {% for m in mounts %}{{m}}, {% endfor %}<br />
     internals - {% for m in modules %}{{m}}, {% endfor %} </p>
 
-{% if travel_time > 0 or cooldown_time > 0%}
-<b> Ship availability impacted. </b><br />
-travel remaining: {{travel_time}}s ({{travel_time_fmt}}) <br />
-cooldown remaining: {{cooldown_time}} ({{cooldown_time_fmt}})<br />
+{% if travel_time > 0 or cooldown_time > 0 %}
+<hr />
+<b> Ship availability impacts. </b><br />
+travel remaining: <span class="tickingTimer">{{travel_time}}s ({{travel_time_fmt}})</span> <br />
+cooldown remaining: <span class="tickingTimer">{{cooldown_time}} ({{cooldown_time_fmt}})</span><br />
 {% endif %}
 
 {% if cargo %}
