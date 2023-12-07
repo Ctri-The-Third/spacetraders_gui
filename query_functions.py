@@ -5,6 +5,7 @@ from straders_sdk.ship import Ship
 from straders_sdk.utils import waypoint_slicer, try_execute_select, waypoint_suffix
 from datetime import datetime, timedelta
 from math import floor
+from dataclasses import dataclass
 
 
 def query_waypoint(client: SpaceTraders, waypoint: str):
@@ -87,6 +88,95 @@ where waypoint_symbol = %s
         )
 
     return return_obj
+
+
+def query_all_exports(client: SpaceTraders, system_symbol: str):
+    sql = """SELECT system_symbol
+    , market_symbol
+    , trade_symbol
+    , supply
+    , activity
+    , purchase_price
+    , sell_price
+    , market_depth
+    , units_sold_recently
+    , requirements
+	FROM public.export_overview
+    where system_symbol = %s"""
+
+    results = try_execute_select(client.connection, sql, (system_symbol,))
+    exports = {}
+    for e in results:
+        ex = Export(e[0], e[1], e[2], e[3], e[4], e[5], e[6], e[7], e[8], e[9] or [])
+        if ex.trade_symbol not in exports:
+            exports[ex.trade_symbol] = []
+        exports[ex.trade_symbol].append(ex)
+
+    extended_exports = {}
+    for key, value in exports.items():
+        extended_exports[key] = []
+        for ex in value:
+            ex.requirements_txt = get_all_export_requirements(ex.trade_symbol, exports)
+            extended_exports[key].append(ex)
+
+    return_obj = {
+        "exports": [e.to_dict() for exes in extended_exports.values() for e in exes],
+        "system_symbol": system_symbol,
+    }
+    return return_obj
+    # turn this into json and return
+
+
+def get_all_export_requirements(export_name: str, exports_map) -> list["Export"]:
+    export = exports_map.get(export_name, None)
+    if export is None or len(export) == 0:
+        return []
+    export = export[0]
+    return_obj = export.requirements_txt
+    for e in export.requirements_txt:
+        return_obj += get_all_export_requirements(e, exports_map)
+    return return_obj
+
+
+class Export:
+    def __init__(
+        self,
+        system_symbol: str,
+        market_symbol: str,
+        trade_symbol: str,
+        supply: int,
+        activity: str,
+        purchase_price: int,
+        sell_price: int,
+        market_depth: int,
+        units_sold_recently: int,
+        requirements_txt: str,
+    ):
+        self.system_symbol = system_symbol
+        self.market_symbol = market_symbol
+        self.trade_symbol = trade_symbol
+        self.supply = supply
+        self.activity = activity
+        self.purchase_price = purchase_price
+        self.sell_price = sell_price
+        self.market_depth = market_depth
+        self.units_sold_recently = units_sold_recently
+        self.requirements_txt = requirements_txt
+
+    def to_dict(self):
+        return {
+            "system_symbol": self.system_symbol,
+            "market_symbol": self.market_symbol,
+            "market_suffix": waypoint_suffix(self.market_symbol),
+            "trade_symbol": self.trade_symbol,
+            "supply": self.supply,
+            "activity": self.activity,
+            "purchase_price": self.purchase_price,
+            "sell_price": self.sell_price,
+            "market_depth": self.market_depth,
+            "units_sold_recently": self.units_sold_recently,
+            "requirements_txt": self.requirements_txt,
+        }
 
 
 def query_ship(client: SpaceTraders, ship_symbol: str):
