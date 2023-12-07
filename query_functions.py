@@ -116,7 +116,8 @@ def query_all_exports(client: SpaceTraders, system_symbol: str):
     for key, value in exports.items():
         extended_exports[key] = []
         for ex in value:
-            ex.requirements_txt = get_all_export_requirements(ex.trade_symbol, exports)
+            requirements = get_all_export_requirements(ex.trade_symbol, exports)
+            ex.requirements_txt = list(set(requirements))
             extended_exports[key].append(ex)
 
     return_obj = {

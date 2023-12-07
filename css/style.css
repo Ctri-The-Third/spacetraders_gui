@@ -41,3 +41,16 @@ a {
 .table-responsive {
     overflow-x: hidden;
 }
+
+
+.all_exports th {
+    padding-right: 5px
+}
+
+.all_exports td {
+    padding-right: 15px;
+}
+
+.all_exports .requirements {
+    font-size: 11px;
+}
