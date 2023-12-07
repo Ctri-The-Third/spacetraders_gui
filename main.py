@@ -17,6 +17,7 @@ from query_functions import (
     query_market,
     query_system,
     query_all_ships,
+    query_all_exports,
 )
 
 from scripts.load_graphs import load_graphs
@@ -37,33 +38,57 @@ users_and_clients = {}
 @app.route("/query/<string>")
 def query(string):
     st = setup_st(request)
+
+    params = query_params(st, string)
+    return render_template(params["_template"], **params)
+
+
+def query_params(st: SpaceTraders, string):
+    st = setup_st(request)
     if string[0:4] == "MKT-" and st.system_market(
         st.waypoints_view_one(waypoint_slicer(string[4:]), string[4:])
     ):
         params = query_market(st, string)
-        return render_template("market_summary.html", **params)
+        params["_template"] = "market_summary.html"
+        params["_query"] = string
+        return params
     elif string[0:5] == "LOGS-" and st.ships_view_one(string[5:]):
         params = query_ship_logs(st, string)
-        return render_template("ship_logs.html", **params)
+        params["_template"] = "ship_logs.html"
+        params["_query"] = string
+        return params
     elif string == "HQ_SYSTEM":
         hq = st.view_my_self().headquarters
         string = waypoint_slicer(hq)
     elif string == "ALL_SHIPS":
         params = query_all_ships(st)
+        params["_template"] = "all_ships.html"
+        params["_query"] = string
+        return params
+    elif string == "ALL_EXPORTS":
+        params = query_all_exports(st, waypoint_slicer(st.view_my_self().headquarters))
+        params["_template"] = "all_exports.html"
+        params["_query"] = string
+        return params
 
-        return render_template("all_ships.html", **params)
     wayp = st.waypoints_view_one(waypoint_slicer(string), string)
     if wayp:
         params = query_waypoint(st, string)
-        return render_template("waypoint_summary.html", **params)
+        params["_template"] = "waypoint_summary.html"
+        params["_query"] = string
+        return params
     syst = st.systems_view_one(string)
     if syst:
         params = query_system(st, string)
-        return render_template("system_view.html", **params)
+        params["_template"] = "system_view.html"
+        params["_query"] = string
+        return params
     ship = st.ships_view_one(string)
     if ship:
         params = query_ship(st, string)
-        return render_template("ship_summary.html", **params)
+        params["_template"] = "ship_summary.html"
+        params["_query"] = string
+        return params
 
     # if it matches a player - go get the player summary
     # if it matches a ship - go get the ship summary
@@ -72,6 +97,11 @@ def query(string):
 @app.route("/scripts/<script_file>")
 def fetch_script(script_file):
     return send_from_directory("scripts", script_file)
+
+
+@app.route("/css/<css_file>")
+def fetch_css(css_file):
+    return send_from_directory("css", css_file)
 
 
 @app.route("/graph_template/")
