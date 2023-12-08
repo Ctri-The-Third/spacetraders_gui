@@ -48,9 +48,16 @@ a {
 }
 
 .all_exports td {
-    padding-right: 15px;
+    padding-right: 12px;
+    padding-left: 3px;
+    border-left: 1px solid green;
 }
 
 .all_exports .requirements {
     font-size: 11px;
+}
+
+.highlighted {
+    background-color: #555;
+
 }

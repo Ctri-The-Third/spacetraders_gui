@@ -14,19 +14,21 @@
         <th>units sold recently</th>
     </tr>
     {% for w in exports %}
-    <tr style='border-top:3px solid green;' class="export">
+    <tr style='border-top:3px solid green;' class="export" id="{{w.trade_symbol}}">
 
         <td>
-            {{w.trade_symbol}}
+            <img src="/icons/GOOD_{{w.trade_symbol}}.png" />{{w.trade_symbol}}
         </td>
         <td>
-            {{w.market_symbol}}
+            <a href="#" onclick="fetch_block('{{w.market_symbol}}','object_summary'); return false;">
+                {{w.market_suffix}}
+            </a>
         </td>
         <td>
-            {{w.supply}}
+            <img src="/icons/{{w.supply}}.png" alt="{{w.supply}}" />
         </td>
         <td>
-            {{w.activty}}
+            <img src="/icons/{{w.activity}}.png" alt="{{w.activity}}" />
         </td>
         <td>
             {{w.purchase_price}}
@@ -42,7 +44,10 @@
     </tr>
     <tr>
         <td colspan="7" class="requirements">
-            {% for e in w.requirements_txt %} {{e}} - {% endfor %}
+            {% for e in w.requirements_txt %} <a href="#{{e}}" onclick="highlight('{{e}}')"><img
+                    src="/icons/GOOD_{{e}}.png" />{{e}}</a> - {% endfor
+            %}
+        </td>
     </tr>
     {% endfor %}
 </table>

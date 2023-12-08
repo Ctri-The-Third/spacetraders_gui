@@ -40,3 +40,15 @@ function reinit() {
 
 reinit()
 //load a json blob and draw circles based on its content
+
+
+
+function highlight(id) {
+
+    var el = document.getElementById(id);
+    el.classList.add("highlighted");
+
+    setTimeout(function () {
+        el.classList.remove("highlighted");
+    }, 2000);
+}
