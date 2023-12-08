@@ -1,5 +1,6 @@
 // Function to call when divs with 'tickingTimer' class are added to the DOM
 function onTimerDivAdded(addedNodes) {
+    console.log("Got this far")
     addedNodes.forEach(node => {
         if (node.nodeType === Node.ELEMENT_NODE && node.classList.contains('tickingTimer')) {
             console.log("New tickingTimer added: ", node);
@@ -69,9 +70,11 @@ const config = { childList: true, subtree: true };
 
 // Callback function to execute when mutations are observed
 const callback = function (mutationsList) {
+    console.log("Callback called")
     for (const mutation of mutationsList) {
         if (mutation.type === 'childList') {
             // Check added nodes
+            console.log("Mutation observed: ", mutation.addedNodes)
             onTimerDivAdded(mutation.addedNodes);
         }
     }
@@ -89,5 +92,15 @@ window.addEventListener('load', () => {
 
 // every 1 second call the updateTimers function
 window.setInterval(updateTimers, 1000);
+
+window.addEventListener('load', () => {
+    // Initialize timers that are already present in the DOM at load time
+    const existingTimers = document.querySelectorAll('.tickingTimer');
+    onTimerDivAdded(existingTimers);
+
+    // Now start the MutationObserver to listen for added nodes with 'tickingTimer' class in the future
+    observer.observe(document.body, config);
+});
+
 
 console.log("Ticking timer script loaded");

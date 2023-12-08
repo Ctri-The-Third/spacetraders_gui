@@ -52,3 +52,25 @@ function highlight(id) {
         el.classList.remove("highlighted");
     }, 2000);
 }
+
+
+function toggle_div(div_id, link_id) {
+    var div = document.getElementById(div_id, link_id);
+    var link = document.getElementById(link_id);
+    if (div.style.display !== "none") {
+        link.innerHTML = "🔼";
+        div.style.display = "none";
+    }
+    else {
+        link.innerHTML = "🔽";
+        div.style.removeProperty('display');
+    }
+}
+
+function getCookie(name) {
+    var cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        //var cookies = document.cookie.split(';');
+        var cookies = document.cookie.split('; ');
+    }
+}

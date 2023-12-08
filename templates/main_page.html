@@ -3,7 +3,7 @@
 
 {% include '_header.html' %}
 
-<body>
+<body class='main_body'>
 
     <div class="container">
         <div class="row" style="">
@@ -36,7 +36,7 @@
 
                             To play here, enter your token below.</p>
                         <textarea id="sTradersToken" name="token" rows="8" cols="80" placeholder="token"></textarea>
-                        <button id="loginButton" value="Login">Save token locally</button>
+                        <button id="loginButton" value="Login" onclick="setToken()">Save token locally</button>
 
 
                     </div>
@@ -103,19 +103,27 @@
         fetchGraphsPage("mainPanel");
     })
 
+    function setToken() {
+        sTradersToken = document.getElementById("sTradersToken").value;
+        if (sTradersToken.length > 0) {
 
-    function toggle_div(div_id, link_id) {
-        var div = document.getElementById(div_id, link_id);
-        var link = document.getElementById(link_id);
-        if (div.style.display !== "none") {
-            link.innerHTML = "🔼";
-            div.style.display = "none";
-        }
-        else {
-            link.innerHTML = "🔽";
-            div.style.removeProperty('display');
+
+            setCookie("sTradersToken", sTradersToken, 14);
         }
     }
+
+    function setCookie(name, value, daysToExpire) {
+        var expires = "";
+
+        if (daysToExpire) {
+            var date = new Date();
+            date.setTime(date.getTime() + (daysToExpire * 24 * 60 * 60 * 1000));
+            expires = "; expires=" + date.toUTCString();
+        }
+
+        document.cookie = name + "=" + (value || "") + expires + "; path=/";
+    }
+
 </script>
 
 </html>
