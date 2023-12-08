@@ -20,7 +20,8 @@ from query_functions import (
     query_all_exports,
 )
 
-from scripts.load_graphs import load_graphs
+
+from static.scripts.load_graphs import load_graphs
 
 config_file_name = "user.json"
 saved_data = json.load(open(config_file_name, "r+"))
@@ -41,6 +42,20 @@ def query(string):
 
     params = query_params(st, string)
     return render_template(params["_template"], **params)
+
+
+@app.route("/small_window/<string>/")
+def small_window(string):
+    st = setup_st(request)
+    params = query_params(st, string)
+    return render_template("small_page.html", **params)
+
+
+@app.route("/large_window/<string>/")
+def marge_window(string):
+    st = setup_st(request)
+    params = query_params(st, string)
+    return render_template("large_page.html", **params)
 
 
 @app.route("/icons/<string>")
@@ -121,11 +136,11 @@ def graph_content():
 
 def setup_st(request) -> SpaceTraders:
     # Split the JWT into its three components
-    token = request.headers.get("Authorization")
+    token = request.cookies.get("sTradersToken")
     if not token:
         return None
     # take the "Bearer " off the front
-    token = token[7:]
+
     header_b64, payload_b64, signature = token.split(".")
 
     # Base64 decode the header and payload
