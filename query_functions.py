@@ -369,6 +369,81 @@ order by 1 """
     return {"ships": sorted_ships}
 
 
+def query_one_type_of_ships(st: SpaceTraders, role: str):
+    sql = """with data as (
+select ship_symbol, max(event_timestamp) as timestamp
+from logging l 
+where event_name = 'BEGIN_BEHAVIOUR_SCRIPT'
+and event_timestamp >= now() - interval '1 day'
+group by 1 
+)
+select l.ship_symbol, event_params ->> 'script_name' as script_name from logging l join data d on l.event_timestamp = d.timestamp and d.ship_symbol = l.ship_symbol
+order by 1 """
+    results = try_execute_select(st.connection, sql, ())
+    behaviours = {r[0]: r[1] for r in results}
+    all_ships = st.ships_view().values()
+    if role == "COMMAND":
+        sorted_ships = {
+            "COMMAND": [
+                _summarise_ship(s, behaviours) for s in all_ships if s.role == "COMMAND"
+            ]
+        }
+    elif role == "TRANSPORT":
+        sorted_ships = {
+            "TRANSPORT": [
+                _summarise_ship(s, behaviours)
+                for s in all_ships
+                if s.role == "TRANSPORT"
+            ]
+        }
+    elif role == "SATELLITE":
+        sorted_ships = {
+            "SATELLITE": [
+                _summarise_ship(s, behaviours)
+                for s in all_ships
+                if s.role == "SATELLITE"
+            ]
+        }
+    elif role == "HAULER":
+        sorted_ships = {
+            "HAULER": [
+                _summarise_ship(s, behaviours) for s in all_ships if s.role == "HAULER"
+            ]
+        }
+    elif role == "REFINERY":
+        sorted_ships = {
+            "REFINERY": [
+                _summarise_ship(s, behaviours)
+                for s in all_ships
+                if s.role == "REFINERY"
+            ]
+        }
+    elif role == "EXTRACTOR":
+        sorted_ships = {
+            "EXTRACTOR": [
+                _summarise_ship(s, behaviours)
+                for s in all_ships
+                if s.role == "EXCAVATOR" and s.can_extract
+            ]
+        }
+    elif role == "SIPHONER":
+        sorted_ships = {
+            "SIPHONER": [
+                _summarise_ship(s, behaviours)
+                for s in all_ships
+                if s.role == "EXCAVATOR" and s.can_siphon
+            ]
+        }
+
+        keys, all_ships = st.ships_view().items()
+        sorted_ships = {}
+        for ship in all_ships:
+            ship: Ship
+            sorted_ships[ship.nav.waypoint_symbol] = _summarise_ship(ship, behaviours)
+
+    return {"ships": sorted_ships}
+
+
 def _summarise_ship(ship: Ship, most_recent_behaviours: dict) -> dict:
     most_recent_behaviour = most_recent_behaviours.get(ship.name, None)
     if ship.nav.status == "IN_TRANSIT":
