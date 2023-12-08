@@ -43,6 +43,11 @@ def query(string):
     return render_template(params["_template"], **params)
 
 
+@app.route("/icons/<string>")
+def load_icon(string):
+    return send_from_directory("icons", string)
+
+
 def query_params(st: SpaceTraders, string):
     st = setup_st(request)
     if string[0:4] == "MKT-" and st.system_market(
