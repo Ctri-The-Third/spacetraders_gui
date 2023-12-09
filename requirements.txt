@@ -2,3 +2,4 @@ pytest
 pyjwt
 plotly
 flask 
+pandas

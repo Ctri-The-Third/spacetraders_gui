@@ -19,6 +19,7 @@ from query_functions import (
     query_all_ships,
     query_all_exports,
 )
+import query_functions as qf
 
 
 from static.scripts.load_graphs import load_graphs
@@ -68,29 +69,35 @@ def query_params(st: SpaceTraders, string):
     if string[0:4] == "MKT-" and st.system_market(
         st.waypoints_view_one(waypoint_slicer(string[4:]), string[4:])
     ):
-        params = query_market(st, string)
+        params = qf.query_market(st, string)
         params["_template"] = "market_summary.html"
         params["_query"] = string
         return params
-    elif string[0:5] == "LOGS-" and st.ships_view_one(string[5:]):
-        params = query_ship_logs(st, string)
-        params["_template"] = "ship_logs.html"
+    elif string[0:5] == "SESH-":
+        params = qf.query_session(st, string)
+        params["_template"] = "session_summary.html"
         params["_query"] = string
         return params
     elif string == "HQ_SYSTEM":
         hq = st.view_my_self().headquarters
         string = waypoint_slicer(hq)
     elif string == "ALL_SHIPS":
-        params = query_all_ships(st)
+        params = qf.query_all_ships(st)
         params["_template"] = "all_ships.html"
         params["_query"] = string
         return params
     elif string == "ALL_EXPORTS":
-        params = query_all_exports(st, waypoint_slicer(st.view_my_self().headquarters))
+        params = qf.query_all_exports(
+            st, waypoint_slicer(st.view_my_self().headquarters)
+        )
         params["_template"] = "all_exports.html"
         params["_query"] = string
         return params
-
+    elif string == "ALL_TRANSACTIONS":
+        params = qf.query_all_transactions(st)
+        params["_template"] = "all_transactions.html"
+        params["_query"] = string
+        return params
     wayp = st.waypoints_view_one(waypoint_slicer(string), string)
     if wayp:
         params = query_waypoint(st, string)

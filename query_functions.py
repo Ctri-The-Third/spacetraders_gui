@@ -6,6 +6,7 @@ from straders_sdk.utils import waypoint_slicer, try_execute_select, waypoint_suf
 from datetime import datetime, timedelta
 from math import floor
 from dataclasses import dataclass
+import json
 
 
 def query_waypoint(client: SpaceTraders, waypoint: str):
@@ -308,6 +309,148 @@ def query_system(st: SpaceTraders, system_symbol: str):
     return {"waypoints": waypoints, "centre": centre}
 
 
+def query_session(st: SpaceTraders, session_id):
+    sql = """
+select * from logging where session_id = %s
+order by event_name = 'BEGIN_BEHAVIOUR_SCRIPT', event_Timestamp desc  
+limit 100;
+"""
+    session_id = session_id[5:]
+    results = try_execute_select(st.connection, sql, (session_id,))
+    response = []
+    header = _try_parse_begin_behaviour_script(results[-1][3], results[-1][9])
+    for log in results:
+        time = log[1]
+        if time.date() == datetime.now().date():
+            time_fmt = time.strftime(r"%H:%M:%S")
+        else:
+            time_fmt = time.strftime(r"%Y-%m-%d %H:%M:%S")
+        response.append(
+            {
+                "time": time_fmt,
+                "name": log[0],
+                "status_code": log[7],
+                "error_code": log[8],
+                "duration": log[10],
+                "params": log[9],
+            }
+        )
+
+    return {"header": header, "events": response}
+
+
+def _try_parse_begin_behaviour_script(ship_name, event_params: dict):
+    script_name = event_params.get("script_name", None)
+    response_lines = []
+    if not script_name:
+        response_lines.append(
+            f"{ship_name} is doing an unknown behaviour! here are the params {json.dumps(event_params, indent=2)}"
+        )
+    if script_name == "MONITOR_SPECIFIC_WAYPOINT":
+        pass
+    elif script_name == "MONITOR_CHEAPEST_SHIPYARD_PRICE":
+        pass
+    elif script_name == "SINGLE_STABLE_TRADE":
+        pass
+    elif script_name == "EXTRACT_AND_SELL":
+        pass
+    elif script_name == "SCAN_THREAD`":
+        pass
+    elif script_name == "MONITOR_SPECIFIC_WAYPOINT":
+        pass
+    elif script_name == "MONITOR_CHEAPEST_SHIPYARD_PRICE":
+        pass
+    elif script_name == "MANAGE_SPECIFIC_EXPORT":
+        if "market_wp" in event_params:
+            response_lines.append(
+                f"{ship_name} is managing {event_params.get('target_tradegood', 'UNKNOWN')} at {event_params.get('market_wp', 'UNKNOWN')}."
+            )
+
+        else:
+            response_lines.append(
+                f"{ship_name} is managing {event_params.get('target_tradegood', 'UNKNOWN')}, it will do so at the first market it finds that exports it."
+            )
+        response_lines.append(
+            "If the market data is old, the ship will travel to the market and update it."
+        )
+        response_lines.append(
+            "If supply is not SCARCE or LIMITED (which means MODERATE, HIGH, ABUNDANT) then it will try and sell the export."
+        )
+        response_lines.append(
+            f" if the selected export is RESTRICTED, it will find required imports that are profitable (any %) and bring them to the exporting market, to enable the market to grow."
+        )
+
+    elif script_name == "SIPHON_AND_CHILL":
+        pass
+    elif script_name == "BUY_AND_DELIVER_OR_SELL":
+        buy_shorthand = event_params.get("buy_wp", "UNKNOWN")
+        sell_shorthand = event_params.get("sell_wp", "UNKNOWN")
+        if (
+            "buy_wp" in event_params
+            and "sell_wp" in event_params
+            and waypoint_slicer(buy_shorthand) == waypoint_slicer(sell_shorthand)
+        ):
+            buy_shorthand = waypoint_suffix(buy_shorthand)
+            sell_shorthand = waypoint_suffix(sell_shorthand)
+
+        response_lines.append(
+            f"{ship_name} is buying {event_params.get('quantity', 1)} {event_params.get('tradegood', 'UNKNOWN')} at {buy_shorthand} and selling at {sell_shorthand}."
+        )
+        if "safety_profit_threshold" in event_params:
+            response_text = f"The ship will abort if projected profit is less than {event_params.get('safety_profit_threshold', 0)} when purchasing."
+            response_lines.append(response_text)
+
+        pass
+    elif script_name == "EXTRACT_AND_CHILL":
+        pass
+    else:
+        response_lines.append(
+            f"{ship_name} is doing unknown behaviour {script_name}! here are the params {json.dumps(event_params, indent=2)}"
+        )
+
+    if "task_hash" in event_params:
+        response_text = f"This is a specific task, not a regular behaviour. "
+
+    if "priority" in event_params:
+        response_lines.append(f"Priority: {event_params.get('priority', 'UNKNOWN')}.")
+    return response_lines
+
+
+def query_all_transactions(st: SpaceTraders):
+    sql = """
+SELECT first_transaction_in_session, ship_symbol, trade_symbol, units, average_sell_price, average_purchase_price, net_change, purchase_wp, sell_wp, session_id
+	FROM public.transaction_overview
+    where ship_symbol ilike %s
+    """
+    results = try_execute_select(st.connection, sql, (f"{st.current_agent_symbol}%",))
+    transactions = []
+    for result in results:
+        start_time: datetime = result[0]
+        if start_time.date() == datetime.now().date():
+            start_time_fmt = start_time.strftime(r"%H:%M:%S")
+        else:
+            start_time_fmt = start_time.strftime(r"%Y-%m-%d %H:%M:%S")
+        transactions.append(
+            {
+                "start_time": start_time_fmt,
+                "ship_symbol": result[1],
+                "ship_suffix": waypoint_suffix(result[1]),
+                "trade_symbol": result[2],
+                "units": result[3],
+                "average_sell_price": result[4],
+                "average_purchase_price": result[5],
+                "net_change": result[6] or "",
+                "purchase_wp": result[7] or "",
+                "purchase_wp_suffix": waypoint_suffix(result[7]) if result[7] else "",
+                "sell_wp": result[8] or "",
+                "sell_wp_suffix": waypoint_suffix(result[8]) if result[8] else "",
+                "session_id": result[9],
+                "session_id_trunc": result[9][0:5],
+            }
+        )
+    return {"transactions": transactions}
+
+
 def query_all_ships(
     st: SpaceTraders, partition_by_role: bool = True, partition_by_waypoint: bool = True
 ):
@@ -478,6 +621,7 @@ def map_role(role) -> str:
         "COMMAND": "👑",
         "EXCAVATOR": "⛏️",
         "HAULER": "🚛",
+        "TRANSPORT": "🚚",
         "SATELLITE": "🛰️",
         "REFINERY": "⚙️",
     }
@@ -488,6 +632,7 @@ def map_frame(role) -> str:
     frames = {
         "FRAME_DRONE": "⛵",
         "FRAME_PROBE": "⛵",
+        "FRAME_SHUTTLE": "⛵",
         "FRAME_MINER": "🚤",
         "FRAME_LIGHT_FREIGHTER": "🚤",
         "FRAME_FRIGATE": "🚤",

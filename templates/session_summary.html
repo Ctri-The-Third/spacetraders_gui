@@ -1,0 +1,26 @@
+<h1> Session Summary </h1>
+
+<p>
+    {% for h in header%}
+    {{h}}<br />
+    {% endfor %}
+</p>
+<hr />
+
+{% for le in events %}
+<div class="row" style="border-bottom:1px solid green;">
+    <div class="col-md-2 col-sm-12">
+        {{le.time}} - <b>{{le.name}}</b>
+    </div>
+    <div class="col-md-2 col-sm-12">
+        {%if le.status_code and le.status_code > 0 %}
+        🌐 {{le.duration}}s
+        {% endif %}
+    </div>
+    {%if le.error_code and le.error_code > 0%} <div class="col-2">🚨 {{le.error_code}}</div> {% endif %}
+    {% if le.params %} <div class="col-md-8 col-sm-12">
+        {{le.params }}
+    </div>
+    {% endif %}
+</div>
+{% endfor %}

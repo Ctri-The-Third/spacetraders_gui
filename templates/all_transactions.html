@@ -1,0 +1,79 @@
+<h1>Transactions
+    {% if _template and _query %}<a href='#'
+        onclick="window.open('/large_window/{{_query}}','{{_query}}','menubar=no,toolbar=no')">[↗️]</a>{% endif %}
+</h1>
+<br />
+
+
+<!--
+    transactions.append(
+            {
+                "start_time": result[0],
+                "ship_symbol": result[1],
+                "trade_symbol": result[2],
+                "units": result[3],
+                "average_sell_price": result[4],
+                "average_purchase_price": result[5],
+                "net_change": result[6],
+                "purchase_wp": result[7],
+                "purchase_wp_suffix": waypoint_suffix(result[7]),
+                "sell_wp": result[8],
+                "sell_wp_suffix": waypoint_suffix(result[8]),
+                "session_id": result[9],
+                "session_id_trunc": result[9][0:5],
+            }
+-->
+
+<table class="all_exports">
+    <tr>
+        <th>Begin time</th>
+        <th>Ship </th>
+        <th>Trade symbol</th>
+        <th>Units</th>
+        <th>📉Cost(1) </th>
+        <th>📈Sale(1)</th>
+        <th>📊Net(all)</th>
+        <th>Waypoints</th>
+
+    </tr>
+    {% for t in transactions %}
+    <tr style='border-top:3px solid green;' class="export">
+
+        <td>
+            <a href="/large_window/SESH-{{t.session_id}}"
+                onclick="fetch_block('SESH-{{t.session_id}}','object_summary'); return false;">
+                {{t.start_time}}
+            </a>
+        </td>
+        <td>
+            <a href="/small_window/{{t.ship_symbol}}"
+                onclick="fetch_block('{{t.ship_symbol}}', 'object_summary'); return false;">
+                <div class="box">
+                    <div>{{t.ship_suffix}}</div>
+        <td>
+            <img src="/icons/GOOD_{{t.trade_symbol}}.png" alt="{{t.trade_symbol}}" />{{t.trade_symbol[0:15]}}
+        </td>
+        <td>
+            {{t.units}}
+        </td>
+        <td style="color:red;">
+            {% if t.average_purchase_price %}-{{t.average_purchase_price}}{% endif %}
+        </td>
+        <td style="color:lime;">
+            {% if t.average_sell_price %}{{t.average_sell_price}}{% endif %}
+        </td>
+        <td style="color:{% if t.net_change >= 0 %}lime{% else %}red{% endif %};">
+            {{t.net_change}}
+        </td>
+        <td>
+            <a href="/small_window/{{t.purchase_wp}}"
+                onclick="fetch_block('{{t.purchase_wp}}', 'object_summary'); return false;">{{t.purchase_wp_suffix}}</a>{%if
+            t.purchase_wp_suffix and t.sell_wp_suffix%} ➡️ {% endif %}<a href="/small_window/{{t.sell_wp}}"
+                onclick="fetch_block('{{t.sell_wp}}', 'object_summary'); return false;">{{t.sell_wp_suffix}} </a>
+
+        </td>
+
+    </tr>
+
+    {% endfor %}
+</table>
