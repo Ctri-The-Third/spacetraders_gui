@@ -439,7 +439,7 @@ SELECT first_transaction_in_session, ship_symbol, trade_symbol, units, average_s
                 "units": result[3],
                 "average_sell_price": result[4],
                 "average_purchase_price": result[5],
-                "net_change": result[6] or "",
+                "net_change": result[6] or 0,
                 "purchase_wp": result[7] or "",
                 "purchase_wp_suffix": waypoint_suffix(result[7]) if result[7] else "",
                 "sell_wp": result[8] or "",
