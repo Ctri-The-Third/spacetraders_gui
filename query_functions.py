@@ -382,9 +382,31 @@ def _try_parse_begin_behaviour_script(ship_name, event_params: dict):
 
     elif script_name == "SIPHON_AND_CHILL":
         pass
+    elif script_name == "TAKE_FROM_EXTRACTORS_AND_GO_SELL_9":
+        cargo_to_receive = event_params.get("cargo_to_receive", "UNKNOWN")
+        source_wp = event_params.get("asteroid_wp", "UNKNOWN")
+        market_wp = event_params.get("market_wp", "UNKNOWN")
+
+        if market_wp and source_wp:
+            response_lines.append(
+                f"{ship_name} is going to {source_wp} to take {cargo_to_receive} from any idling extractors, and is selling it at {market_wp}."
+            )
+        elif market_wp:
+            response_lines.append(
+                f"{ship_name} is going to find idling extractors with {cargo_to_receive}, take it, then selling at {market_wp}."
+            )
+        elif source_wp:
+            response_lines.append(
+                f"{ship_name} is going to {source_wp} to take {cargo_to_receive} from any idling extractors, and is selling it at the best market it finds that imports it."
+            )
+        else:
+            response_lines.append(
+                f"{ship_name} is finding extractors with {event_params.get('cargo_to_receive', 'UNKNOWN')}, and is selling it "
+            )
     elif script_name == "BUY_AND_DELIVER_OR_SELL":
-        buy_shorthand = event_params.get("buy_wp", "UNKNOWN")
+        buy_shorthand = event_params.get("buy_wp", "the best place it can find")
         sell_shorthand = event_params.get("sell_wp", "UNKNOWN")
+        fulfill_shorthand = event_params.get("fulfil_wp", None)
         if (
             "buy_wp" in event_params
             and "sell_wp" in event_params
@@ -392,9 +414,14 @@ def _try_parse_begin_behaviour_script(ship_name, event_params: dict):
         ):
             buy_shorthand = waypoint_suffix(buy_shorthand)
             sell_shorthand = waypoint_suffix(sell_shorthand)
+        if (
+            "buy_wp" in event_params and "fulfil_wp" in event_params
+        ) and waypoint_slicer(buy_shorthand) == waypoint_slicer(fulfill_shorthand):
+            buy_shorthand = waypoint_suffix(buy_shorthand)
+            fulfill_shorthand = waypoint_suffix(fulfill_shorthand)
 
         response_lines.append(
-            f"{ship_name} is buying {event_params.get('quantity', 1)} {event_params.get('tradegood', 'UNKNOWN')} at {buy_shorthand} and selling at {sell_shorthand}."
+            f"{ship_name} is buying {event_params.get('quantity', 1)} {event_params.get('tradegood', 'UNKNOWN')} at {buy_shorthand} and {'delivering to' if fulfill_shorthand else 'selling at'} {fulfill_shorthand or sell_shorthand}."
         )
         if "safety_profit_threshold" in event_params:
             response_text = f"The ship will abort if projected profit is less than {event_params.get('safety_profit_threshold', 0)} when purchasing."
@@ -409,7 +436,7 @@ def _try_parse_begin_behaviour_script(ship_name, event_params: dict):
         )
 
     if "task_hash" in event_params:
-        response_text = f"This is a specific task, not a regular behaviour. "
+        response_lines.append(f"This is a specific task, not a regular behaviour. ")
 
     if "priority" in event_params:
         response_lines.append(f"Priority: {event_params.get('priority', 'UNKNOWN')}.")
