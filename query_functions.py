@@ -236,20 +236,23 @@ def query_ship(client: SpaceTraders, ship_symbol: str):
 , event_timestamp
 , sb.behaviour_id as regular_behaviour
 , sb.behaviour_params
+, session_id
 from logging l left join ship_behaviours sb on l.ship_symbol = sb.ship_symbol
-where l.ship_symbol = 'CTRI-U--1'
+where l.ship_symbol = %s
 and event_name = 'BEGIN_BEHAVIOUR_SCRIPT'
 order by event_timestamp desc 
 limit 1
 """
-    results = try_execute_select(client.connection, recent_behaviour_sql, ())
+    results = try_execute_select(
+        client.connection, recent_behaviour_sql, (ship_symbol,)
+    )
     if len(results) > 0:
         result = results[0]
         return_obj["most_recent_behaviour"] = result[0]
-        return_obj["most_recent_behaviour_ts"] = result[1]
+        return_obj["most_recent_behaviour_ts"] = result[1].strftime(r"%H:%M:%S")
         return_obj["regular_behaviour"] = result[2]
         return_obj["regular_behaviour_params"] = result[3]
-
+        return_obj["session_id"] = result[4]
     incomplete_tasks_and_behaviours_sql = """
     select behaviour_id, priority, behaviour_params from ship_Tasks where claimed_by = %s and completed != True
     union
@@ -347,18 +350,27 @@ def _try_parse_begin_behaviour_script(ship_name, event_params: dict):
             f"{ship_name} is doing an unknown behaviour! here are the params {json.dumps(event_params, indent=2)}"
         )
     if script_name == "MONITOR_SPECIFIC_WAYPOINT":
+        response_lines.append(
+            f"{ship_name} is monitoring a specific waypoint for market and shipyard changes"
+        )
         pass
     elif script_name == "MONITOR_CHEAPEST_SHIPYARD_PRICE":
+        response_lines.append(
+            f"{ship_name} is positioning itself at the cheapest shipyard for a given ship"
+        )
         pass
     elif script_name == "SINGLE_STABLE_TRADE":
+        response_lines.append(
+            f"{ship_name} is doing free trading of whatever it finds in-system"
+        )
         pass
+    elif script_name == "CONSTRUCT_JUMPGATE":
+        response_lines.append(f"{ship_name} is getting inexpensive a jumpgate")
     elif script_name == "EXTRACT_AND_SELL":
+        response_lines.append(f"{ship_name} is extracting and taking it away to sell")
         pass
-    elif script_name == "SCAN_THREAD`":
-        pass
-    elif script_name == "MONITOR_SPECIFIC_WAYPOINT":
-        pass
-    elif script_name == "MONITOR_CHEAPEST_SHIPYARD_PRICE":
+    elif script_name == "SCAN_THREAD":
+        response_lines.append(f"{ship_name} is scanning everything in the galaxy")
         pass
     elif script_name == "MANAGE_SPECIFIC_EXPORT":
         if "market_wp" in event_params:
@@ -381,6 +393,9 @@ def _try_parse_begin_behaviour_script(ship_name, event_params: dict):
         )
 
     elif script_name == "SIPHON_AND_CHILL":
+        response_lines.append(
+            f"{ship_name} is siphoning and then waiting till someone takes away its cargo"
+        )
         pass
     elif script_name == "TAKE_FROM_EXTRACTORS_AND_GO_SELL_9":
         cargo_to_receive = event_params.get("cargo_to_receive", "UNKNOWN")
@@ -429,7 +444,10 @@ def _try_parse_begin_behaviour_script(ship_name, event_params: dict):
 
         pass
     elif script_name == "EXTRACT_AND_CHILL":
-        pass
+        response_lines.append(
+            f"{ship_name} is extracting and then waiting till someone takes away its cargo"
+        )
+
     else:
         response_lines.append(
             f"{ship_name} is doing unknown behaviour {script_name}! here are the params {json.dumps(event_params, indent=2)}"

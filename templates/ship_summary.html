@@ -37,6 +37,7 @@ cooldown remaining: <span class="tickingTimer">{{cooldown_time}} ({{cooldown_tim
 [<a href="#" onClick="fetch_block('LOG_TASK/{{ship_symbol}}','object_detail');  return false;">Behaviour &
     Tasks</a>]<br />
 {% if most_recent_behaviour %}
-Most recent behaviour: {{most_recent_behaviour}}<br />
+Most recent behaviour: <a href="/small_window/SESH-{{session_id}}"
+    onClick="fetch_block('SESH-{{session_id}}','object_detail'); return false;">{{most_recent_behaviour}}</a><br />
 Started at {{most_recent_behaviour_ts}}<br />
 {% endif %}
