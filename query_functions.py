@@ -92,7 +92,7 @@ where waypoint_symbol = %s
 
 
 def query_all_exports(client: SpaceTraders, system_symbol: str):
-    sql = """SELECT system_symbol
+    e_sql = """SELECT system_symbol
     , market_symbol
     , trade_symbol
     , supply
@@ -105,28 +105,46 @@ def query_all_exports(client: SpaceTraders, system_symbol: str):
 	FROM public.export_overview
     where system_symbol = %s"""
 
-    results = try_execute_select(client.connection, sql, (system_symbol,))
+    e_results = try_execute_select(client.connection, e_sql, (system_symbol,))
+    i_sql = """SELECT system_symbol, market_symbol, trade_symbol, supply, activity, purchase_price, sell_price, market_depth, units_sold_recently
+	FROM public.import_overview
+	where system_symbol = %s """
+    i_results = try_execute_select(client.connection, i_sql, (system_symbol,))
+    i_markets = {}
+    for i in i_results:
+        im = Import(i[0], i[1], i[2], i[3], i[4], i[5], i[6], i[7], i[8])
+        if im.market_symbol not in i_markets:
+            i_markets[im.market_symbol] = {}
+        i_markets[im.market_symbol][im.trade_symbol] = im
+
     exports = {}
-    for e in results:
+    for e in e_results:
         ex = Export(e[0], e[1], e[2], e[3], e[4], e[5], e[6], e[7], e[8], e[9] or [])
+        for im in ex.requirements_txt:
+            im_mkt = i_markets.get(ex.market_symbol, {})
+            im_im = im_mkt.get(im, None)
+            if im_im is not None:
+                ex.requirements.append(im_im)
+
         if ex.trade_symbol not in exports:
             exports[ex.trade_symbol] = []
         exports[ex.trade_symbol].append(ex)
 
-    extended_exports = {}
-    for key, value in exports.items():
-        extended_exports[key] = []
-        for ex in value:
-            requirements = get_all_export_requirements(ex.trade_symbol, exports)
-            ex.requirements_txt = list(set(requirements))
-            extended_exports[key].append(ex)
-
     return_obj = {
-        "exports": [e.to_dict() for exes in extended_exports.values() for e in exes],
+        "exports": [e.to_dict() for exes in exports.values() for e in exes],
         "system_symbol": system_symbol,
     }
     return return_obj
     # turn this into json and return
+
+
+def get_some_export_requirements(export_name: str, exports_map) -> list["Export"]:
+    export = exports_map.get(export_name, None)
+    if export is None or len(export) == 0:
+        return []
+    export = export[0]
+    return_obj = export.requirements_txt
+    return return_obj
 
 
 def get_all_export_requirements(export_name: str, exports_map) -> list["Export"]:
@@ -138,6 +156,33 @@ def get_all_export_requirements(export_name: str, exports_map) -> list["Export"]
     for e in export.requirements_txt:
         return_obj += get_all_export_requirements(e, exports_map)
     return return_obj
+
+
+@dataclass
+class Import:
+    system_symbol: str
+    market_symbol: str
+    trade_symbol: str
+    demand: int
+    activity: str
+    purchase_price: int
+    sell_price: int
+    market_depth: int
+    units_sold_recently: int
+
+    def to_dict(self):
+        return {
+            "system_symbol": self.system_symbol,
+            "market_symbol": self.market_symbol,
+            "market_suffix": waypoint_suffix(self.market_symbol),
+            "trade_symbol": self.trade_symbol,
+            "demand": self.demand,
+            "activity": self.activity,
+            "purchase_price": self.purchase_price,
+            "sell_price": self.sell_price,
+            "market_depth": self.market_depth,
+            "units_sold_recently": self.units_sold_recently,
+        }
 
 
 class Export:
@@ -162,8 +207,9 @@ class Export:
         self.purchase_price = purchase_price
         self.sell_price = sell_price
         self.market_depth = market_depth
-        self.units_sold_recently = units_sold_recently
+        self.units_purchased_recently = units_sold_recently
         self.requirements_txt = requirements_txt
+        self.requirements = []
 
     def to_dict(self):
         return {
@@ -176,8 +222,9 @@ class Export:
             "purchase_price": self.purchase_price,
             "sell_price": self.sell_price,
             "market_depth": self.market_depth,
-            "units_sold_recently": self.units_sold_recently,
+            "units_purchased_recently": self.units_purchased_recently,
             "requirements_txt": self.requirements_txt,
+            "requirements": [r.to_dict() for r in self.requirements],
         }
 
 
