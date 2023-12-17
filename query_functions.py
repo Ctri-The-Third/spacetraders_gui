@@ -396,7 +396,15 @@ def _try_parse_begin_behaviour_script(ship_name, event_params: dict):
         response_lines.append(
             f"{ship_name} is doing an unknown behaviour! here are the params {json.dumps(event_params, indent=2)}"
         )
-    if script_name == "MONITOR_SPECIFIC_WAYPOINT":
+    elif script_name == "CHAIN_TRADES":
+        f"{ship_name} is doing whatever profitable trades it can find, starting a new trade from a close to the end of the old trade as possible."
+    elif script_name == "CONSTRUCT_JUMPGATE":
+        response_lines.append(f"{ship_name} is getting inexpensive a jumpgate")
+    elif script_name == "EXECUTE_CONTRACTS":
+        response_lines.append(
+            f"{ship_name} is executing any contract it can find, and generating & accepting profitable new ones."
+        )
+    elif script_name == "MONITOR_SPECIFIC_WAYPOINT":
         response_lines.append(
             f"{ship_name} is monitoring a specific waypoint for market and shipyard changes"
         )
@@ -411,8 +419,6 @@ def _try_parse_begin_behaviour_script(ship_name, event_params: dict):
             f"{ship_name} is doing free trading of whatever it finds in-system"
         )
         pass
-    elif script_name == "CONSTRUCT_JUMPGATE":
-        response_lines.append(f"{ship_name} is getting inexpensive a jumpgate")
     elif script_name == "EXTRACT_AND_SELL":
         response_lines.append(f"{ship_name} is extracting and taking it away to sell")
         pass

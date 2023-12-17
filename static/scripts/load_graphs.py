@@ -15,7 +15,7 @@ def load_graphs(st: SpaceTraders):
               with data as (         select date_trunc('hour', event_timestamp) + (date_part('minute', event_timestamp)::integer / 10 * interval '10 minute') AS interval_start
                 , agent_name, round(avg(new_credits)) as new_credits from logging 
                 where event_name in ('BEGIN_BEHAVIOUR_SCRIPT','END_BEHAVIOUR_SCRIPT')
-                and event_timestamp > now() - interval '1 day'
+                and event_timestamp > now() - interval '18 hours'
                 group by 1,2 
                 order by 1 desc ,2
 			  )
@@ -48,18 +48,18 @@ def load_graphs(st: SpaceTraders):
         }
         plotly_data.append(trace)
 
-        cleaned_list = [
-            None if math.isnan(y) else y for y in credits_change_df[agent].to_list()
-        ]
-        trace2 = {
-            "x": [t.isoformat() for t in credits_change_df["time"].to_list()],
-            "y": cleaned_list,
-            "type": "scatter",
-            "mode": "lines+markers",
-            "name": f"{agent}-changes",
-            "yaxis": "y2",
-        }
-        plotly_data.append(trace2)
+        # cleaned_list = [
+        #    None if math.isnan(y) else y for y in credits_change_df[agent].to_list()
+        # ]
+        # trace2 = {
+        #    "x": [t.isoformat() for t in credits_change_df["time"].to_list()],
+        #    "y": cleaned_list,
+        #    "type": "scatter",
+        #    "mode": "lines+markers",
+        #    "name": f"{agent}-changes",
+        #    "yaxis": "y2",
+        # }
+        # plotly_data.append(trace2)
 
     layout = {
         "title": "Credits and Other Credits Over Time",
