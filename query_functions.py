@@ -510,7 +510,7 @@ def _try_parse_begin_behaviour_script(ship_name, event_params: dict):
 
 def query_all_transactions(st: SpaceTraders):
     sql = """
-SELECT first_transaction_in_session, ship_symbol, trade_symbol, units, average_sell_price, average_purchase_price, net_change, purchase_wp, sell_wp, session_id
+SELECT first_transaction_in_session, ship_symbol, trade_symbol, units_sold, average_sell_price, average_purchase_price, net_change, purchase_wp, sell_wp, session_id, units_purchased
 	FROM public.transaction_overview
     where ship_symbol ilike %s
     """
@@ -528,7 +528,8 @@ SELECT first_transaction_in_session, ship_symbol, trade_symbol, units, average_s
                 "ship_symbol": result[1],
                 "ship_suffix": waypoint_suffix(result[1]),
                 "trade_symbol": result[2],
-                "units": result[3],
+                "units_sold": result[3],
+                "units_purchased": result[10],
                 "average_sell_price": result[4],
                 "average_purchase_price": result[5],
                 "net_change": result[6] or 0,

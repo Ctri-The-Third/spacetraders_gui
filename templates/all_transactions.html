@@ -29,7 +29,7 @@
         <th>Begin time</th>
         <th>Ship </th>
         <th>Trade symbol</th>
-        <th>Units</th>
+        <th>units<br />📥|📤</th>
         <th>📉Cost(1) </th>
         <th>📈Sale(1)</th>
         <th>📊Net(all)</th>
@@ -54,7 +54,7 @@
             <img src="/icons/GOOD_{{t.trade_symbol}}.png" alt="{{t.trade_symbol}}" />{{t.trade_symbol[0:15]}}
         </td>
         <td>
-            {{t.units}}
+            {{t.units_purchased}} | {{t.units_sold}}
         </td>
         <td style="color:red;">
             {% if t.average_purchase_price %}-{{t.average_purchase_price}}{% endif %}
