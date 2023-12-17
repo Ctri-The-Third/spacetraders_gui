@@ -188,33 +188,6 @@ def get_all_export_requirements(export_name: str, exports_map) -> list["Export"]
     return return_obj
 
 
-@dataclass
-class Import:
-    system_symbol: str
-    market_symbol: str
-    trade_symbol: str
-    demand: int
-    activity: str
-    purchase_price: int
-    sell_price: int
-    market_depth: int
-    units_sold_recently: int
-
-    def to_dict(self):
-        return {
-            "system_symbol": self.system_symbol,
-            "market_symbol": self.market_symbol,
-            "market_suffix": waypoint_suffix(self.market_symbol),
-            "trade_symbol": self.trade_symbol,
-            "demand": self.demand,
-            "activity": self.activity,
-            "purchase_price": self.purchase_price,
-            "sell_price": self.sell_price,
-            "market_depth": self.market_depth,
-            "units_sold_recently": self.units_sold_recently,
-        }
-
-
 class Export:
     def __init__(
         self,

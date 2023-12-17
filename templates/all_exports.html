@@ -47,7 +47,7 @@
         <td colspan="7" class="requirements">
             {% for e in w.requirements %} [<a href="#{{e.trade_symbol}}" onclick="highlight('{{e.trade_symbol}}')"><img
                     src="/icons/GOOD_{{e.trade_symbol}}.png" />{{e.trade_symbol}}
-                (TV:<b>{{e.market_depth}}</b> Supply:<b>{{e.demand}}</b>)]</a> -
+                (TV:<b>{{e.market_depth}}</b> Supply:<b>{{e.supply}}</b>)]</a> -
             {% endfor
             %}
         </td>
