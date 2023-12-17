@@ -12,7 +12,7 @@
         <th>activty</th>
         <th>purchase_price</th>
         <th>market_depth</th>
-        <th>units sold recently</th>
+        <th>units bought recently</th>
     </tr>
     {% for w in exports %}
     <tr style='border-top:3px solid green;' class="export" id="{{w.trade_symbol}}">
@@ -38,7 +38,7 @@
             {{w.market_depth}}
         </td>
         <td>
-            {{w.units_sold_recently}}
+            {{w.units_purchased_recently}}
         </td>
 
 
