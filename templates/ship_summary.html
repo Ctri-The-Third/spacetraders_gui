@@ -1,6 +1,7 @@
 <h1><a href="#" onclick="fetch_block('{{ship_symbol}}','object_summary'); return false;">{{ship_symbol}}</a>
     {% if _template and _query %}<a href='#'
-        onclick="window.open('small_window/{{_query}}','{{_query}}','menubar=no,toolbar=no')">[↗️]</a>{% endif %} </h1>
+        onclick="window.open('small_window/{{_query}}','{{_query}}','menubar=no,toolbar=no, width=425, height=375')">[↗️]</a>{%
+    endif %} </h1>
 <br />
 <p>{{ship_role}} {{ship_frame}} [{{cur_fuel}} /{{max_fuel}} fuel] [{{cur_cargo}} /{{max_cargo}} cargo] [<a href="#"
         onclick="fetch_block('LOGS-{{ship_symbol}}','object_detail'); return false;">view logs</a>]
