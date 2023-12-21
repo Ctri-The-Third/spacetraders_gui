@@ -1,4 +1,4 @@
-<h1><a href="#">{{system_symbol}}</a> exports?
+<h1><a href="#">{{system_symbol}}</a> imports
     {% if _template and _query %}<a href='#'
         onclick="window.open('/large_window/{{_query}}','{{_query}}','menubar=no,toolbar=no')">[↗️]</a>{% endif %} </h1>
 <br />
@@ -12,9 +12,9 @@
         <th>activty</th>
         <th>purchase_price</th>
         <th>market_depth</th>
-        <th>units bought recently</th>
+        <th>units sold recently</th>
     </tr>
-    {% for w in exports %}
+    {% for w in imports %}
     <tr style='border-top:3px solid green;' class="export" id="{{w.trade_symbol}}">
 
         <td>
@@ -38,19 +38,10 @@
             {{w.market_depth}}
         </td>
         <td>
-            {{w.units_purchased_recently}}
+            {{w.units_sold_recently}}
         </td>
 
 
-    </tr>
-    <tr>
-        <td colspan="7" class="requirements">
-            {% for e in w.requirements %} [<a href="#{{e.trade_symbol}}" onclick="highlight('{{e.trade_symbol}}')"><img
-                    src="/icons/GOOD_{{e.trade_symbol}}.png" />{{e.trade_symbol}}
-                (TV:<b>{{e.market_depth}}</b> Supply:<b>{{e.supply}}</b>)]</a> -
-            {% endfor
-            %}
-        </td>
     </tr>
     {% endfor %}
 </table>

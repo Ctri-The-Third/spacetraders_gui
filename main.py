@@ -92,6 +92,14 @@ def query_params(st: SpaceTraders, string):
         )
         params["_template"] = "all_exports.html"
         params["_query"] = string
+
+        return params
+    elif string == "ALL_IMPORTS":
+        params = qf.query_all_imports(
+            st, waypoint_slicer(st.view_my_self().headquarters)
+        )
+        params["_template"] = "all_imports.html"
+        params["_query"] = string
         return params
     elif string == "ALL_TRANSACTIONS":
         params = qf.query_all_transactions(st)

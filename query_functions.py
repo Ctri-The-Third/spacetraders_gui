@@ -91,6 +91,36 @@ where waypoint_symbol = %s
     return return_obj
 
 
+def query_all_imports(client: SpaceTraders, system_symbol: str):
+    # SELECT system_symbol, market_symbol, trade_symbol, supply, activity, purchase_price, sell_price, market_depth, units_sold_recently
+    # FROM public.import_overview;
+    #
+
+    sql = """SELECT system_symbol
+    , market_symbol
+    , trade_symbol
+    , supply
+    , activity
+    , purchase_price
+    , sell_price
+    , market_depth
+    , units_sold_recently
+    from public.import_overview
+    where system_symbol = %s"""
+    results = try_execute_select(client.connection, sql, (system_symbol,))
+    imports = {}
+    for i in results:
+        im = Import(i[0], i[1], i[2], i[3], i[4], i[5], i[6], i[7], i[8])
+        if im.trade_symbol not in imports:
+            imports[im.trade_symbol] = []
+        imports[im.trade_symbol].append(im)
+    return_obj = {
+        "imports": [i.to_dict() for imps in imports.values() for i in imps],
+        "system_symbol": system_symbol,
+    }
+    return return_obj
+
+
 def query_all_exports(client: SpaceTraders, system_symbol: str):
     e_sql = """SELECT system_symbol
     , market_symbol
@@ -158,33 +188,6 @@ def get_all_export_requirements(export_name: str, exports_map) -> list["Export"]
     return return_obj
 
 
-@dataclass
-class Import:
-    system_symbol: str
-    market_symbol: str
-    trade_symbol: str
-    demand: int
-    activity: str
-    purchase_price: int
-    sell_price: int
-    market_depth: int
-    units_sold_recently: int
-
-    def to_dict(self):
-        return {
-            "system_symbol": self.system_symbol,
-            "market_symbol": self.market_symbol,
-            "market_suffix": waypoint_suffix(self.market_symbol),
-            "trade_symbol": self.trade_symbol,
-            "demand": self.demand,
-            "activity": self.activity,
-            "purchase_price": self.purchase_price,
-            "sell_price": self.sell_price,
-            "market_depth": self.market_depth,
-            "units_sold_recently": self.units_sold_recently,
-        }
-
-
 class Export:
     def __init__(
         self,
@@ -225,6 +228,33 @@ class Export:
             "units_purchased_recently": self.units_purchased_recently,
             "requirements_txt": self.requirements_txt,
             "requirements": [r.to_dict() for r in self.requirements],
+        }
+
+
+@dataclass
+class Import:
+    system_symbol: str
+    market_symbol: str
+    trade_symbol: str
+    supply: int
+    activity: str
+    purchase_price: int
+    sell_price: int
+    market_depth: int
+    units_sold_recently: int
+
+    def to_dict(self):
+        return {
+            "system_symbol": self.system_symbol,
+            "market_symbol": self.market_symbol,
+            "market_suffix": waypoint_suffix(self.market_symbol),
+            "trade_symbol": self.trade_symbol,
+            "supply": self.supply,
+            "activity": self.activity,
+            "purchase_price": self.purchase_price,
+            "sell_price": self.sell_price,
+            "market_depth": self.market_depth,
+            "units_sold_recently": self.units_sold_recently,
         }
 
 
