@@ -590,6 +590,11 @@ order by 1 """
                 for s in all_ships
                 if s.role == "REFINERY"
             ],
+            "EXPLORER": [
+                _summarise_ship(s, behaviours)
+                for s in all_ships
+                if s.role == "EXPLORER"
+            ],
             "EXTRACTOR": [
                 _summarise_ship(s, behaviours)
                 for s in all_ships
