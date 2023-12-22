@@ -67,9 +67,10 @@
         </td>
         <td>
             <a href="/small_window/{{t.purchase_wp}}"
-                onclick="fetch_block('{{t.purchase_wp}}', 'object_summary'); return false;">{{t.purchase_wp_suffix}}</a>{%if
+                onclick="fetch_block('{{t.purchase_wp}}', 'object_summary'); return false;">{{t.purchase_sys}}{{t.purchase_wp_suffix}}</a>{%if
             t.purchase_wp_suffix and t.sell_wp_suffix%} ➡️ {% endif %}<a href="/small_window/{{t.sell_wp}}"
-                onclick="fetch_block('{{t.sell_wp}}', 'object_summary'); return false;">{{t.sell_wp_suffix}} </a>
+                onclick="fetch_block('{{t.sell_wp}}', 'object_summary'); return false;">{{t.sell_sys}}{{t.sell_wp_suffix}}
+            </a>
 
         </td>
 

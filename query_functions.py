@@ -558,6 +558,8 @@ SELECT first_transaction_in_session, ship_symbol, trade_symbol, units_sold, aver
             start_time_fmt = start_time.strftime(r"%H:%M:%S")
         else:
             start_time_fmt = start_time.strftime(r"%Y-%m-%d %H:%M:%S")
+        purchase_sys = ""
+        sell_sys = ""
         transactions.append(
             {
                 "start_time": start_time_fmt,
@@ -570,8 +572,10 @@ SELECT first_transaction_in_session, ship_symbol, trade_symbol, units_sold, aver
                 "average_purchase_price": result[5],
                 "net_change": result[6] or 0,
                 "purchase_wp": result[7] or "",
+                "purchase_sys": purchase_sys,
                 "purchase_wp_suffix": waypoint_suffix(result[7]) if result[7] else "",
                 "sell_wp": result[8] or "",
+                "sell_sys": sell_sys if sell_sys != purchase_sys else "",
                 "sell_wp_suffix": waypoint_suffix(result[8]) if result[8] else "",
                 "session_id": result[9],
                 "session_id_trunc": result[9][0:5],
