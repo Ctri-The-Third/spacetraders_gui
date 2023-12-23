@@ -18,7 +18,7 @@ import threading
 def query_waypoint(client: SpaceTraders, waypoint: str):
     return_obj = {}
     system_s = waypoint_slicer(waypoint)
-    waypoint = client.waypoints_view_one(system_s, waypoint)
+    waypoint = client.waypoints_view_one(waypoint)
     waypoint: Waypoint
     return_obj["waypoint_symbol"] = waypoint.symbol
     return_obj["waypoint_suffix"] = waypoint_suffix(waypoint.symbol)
@@ -97,7 +97,7 @@ where waypoint_symbol = %s
     return return_obj
 
 
-def query_all_imports(client: SpaceTraders, system_symbol: str):
+def query_imports_in_system(client: SpaceTraders, system_symbol: str):
     # SELECT system_symbol, market_symbol, trade_symbol, supply, activity, purchase_price, sell_price, market_depth, units_sold_recently
     # FROM public.import_overview;
     #
@@ -127,7 +127,7 @@ def query_all_imports(client: SpaceTraders, system_symbol: str):
     return return_obj
 
 
-def query_all_exports(client: SpaceTraders, system_symbol: str):
+def query_exports_in_system(client: SpaceTraders, system_symbol: str):
     e_sql = """SELECT system_symbol
     , market_symbol
     , trade_symbol
@@ -393,7 +393,7 @@ def query_system(st: SpaceTraders, system_symbol: str):
         "symbol": syst.symbol,
     }
 
-    sql = """select ships, total_export_tv, units_exported, units_extracted, profit_an_hour_ago, last_updated from 	
+    sql = """select ships, total_export_tv, units_exported, units_extracted, profit_an_hour_ago, last_updated, total_import_tv from 	
 mat_system_summary 
 where agent_name = %s
 and system_symbol = %s"""
@@ -406,6 +406,7 @@ and system_symbol = %s"""
         system["symbol"] = syst.symbol
         system["ships"] = result[0]
         system["total_export_tv"] = result[1]
+        system["total_import_tv"] = result[6]
         system["units_exported"] = result[2]
         system["units_extracted"] = result[3]
         system["profit_an_hour_ago"] = result[4]
@@ -415,6 +416,7 @@ and system_symbol = %s"""
     else:
         system["ships"] = 0
         system["total_export_tv"] = 0
+        system["total_import_tv"] = 0
         system["units_exported"] = 0
         system["units_extracted"] = 0
         system["profit_an_hour_ago"] = 0
@@ -628,9 +630,7 @@ SELECT first_transaction_in_session, ship_symbol, trade_symbol, units_sold, aver
     return {"transactions": transactions}
 
 
-def query_all_ships(
-    st: SpaceTraders, partition_by_role: bool = True, partition_by_waypoint: bool = True
-):
+def query_all_ships(st: SpaceTraders):
     # we need a ship's name, fuel, cargo, location / nav details, and behaviour. let's block em into rectangles. maybe 5 in a large?
     sql = """with data as (
 select ship_symbol, max(event_timestamp) as timestamp
@@ -643,55 +643,105 @@ select l.ship_symbol, event_params ->> 'script_name' as script_name from logging
 order by 1 """
     results = try_execute_select(st.connection, sql, ())
     behaviours = {r[0]: r[1] for r in results}
-    if partition_by_role:
-        all_ships = st.ships_view().values()
+    all_ships = st.ships_view().values()
+    sorted_ships = _process_some_ships(st, all_ships, behaviours)
+    return {
+        "ships": sorted_ships,
+        "total_ships": len(all_ships),
+        "page_title": "All Ships, All Systems",
+    }
 
-        sorted_ships = {
-            "COMMAND": [
-                _summarise_ship(s, behaviours) for s in all_ships if s.role == "COMMAND"
-            ],
-            "TRANSPORT": [
-                _summarise_ship(s, behaviours)
-                for s in all_ships
-                if s.role == "TRANSPORT"
-            ],
-            "SATELLITE": [
-                _summarise_ship(s, behaviours)
-                for s in all_ships
-                if s.role == "SATELLITE"
-            ],
-            "HAULER": [
-                _summarise_ship(s, behaviours) for s in all_ships if s.role == "HAULER"
-            ],
-            "REFINERY": [
-                _summarise_ship(s, behaviours)
-                for s in all_ships
-                if s.role == "REFINERY"
-            ],
-            "EXPLORER": [
-                _summarise_ship(s, behaviours)
-                for s in all_ships
-                if s.role == "EXPLORER"
-            ],
-            "EXTRACTOR": [
-                _summarise_ship(s, behaviours)
-                for s in all_ships
-                if s.role == "EXCAVATOR" and s.can_extract
-            ],
-            "SIPHONER": [
-                _summarise_ship(s, behaviours)
-                for s in all_ships
-                if s.role == "EXCAVATOR" and s.can_siphon
-            ],
-        }
-    elif partition_by_waypoint:
-        keys, all_ships = st.ships_view().items()
-        sorted_ships = {}
-        for ship in all_ships:
-            ship: Ship
-            sorted_ships[ship.nav.waypoint_symbol] = _summarise_ship(ship, behaviours)
 
-    return {"ships": sorted_ships}
+def _process_some_ships(st: SpaceTraders, all_ships: list[Ship], behaviours: dict):
+    sorted_ships = {}
+
+    command_ships = [
+        _summarise_ship(s, behaviours) for s in all_ships if s.role == "COMMAND"
+    ]
+    if len(command_ships) > 0:
+        sorted_ships["COMMAND"] = command_ships
+    transport_ships = [
+        _summarise_ship(s, behaviours) for s in all_ships if s.role == "TRANSPORT"
+    ]
+    if len(transport_ships) > 0:
+        sorted_ships["TRANSPORT"] = transport_ships
+
+    #
+    # satellite
+    satellite_ships = [
+        _summarise_ship(s, behaviours) for s in all_ships if s.role == "SATELLITE"
+    ]
+    if len(satellite_ships) > 0:
+        sorted_ships["SATELLITE"] = satellite_ships
+
+    #
+    # hauler
+    hauler_ships = [
+        _summarise_ship(s, behaviours) for s in all_ships if s.role == "HAULER"
+    ]
+    if len(hauler_ships) > 0:
+        sorted_ships["HAULER"] = hauler_ships
+
+    #
+    # refinery
+    refinery_ships = [
+        _summarise_ship(s, behaviours) for s in all_ships if s.role == "REFINERY"
+    ]
+    if len(refinery_ships) > 0:
+        sorted_ships["REFINERY"] = refinery_ships
+    explorer_ships = [
+        _summarise_ship(s, behaviours) for s in all_ships if s.role == "EXPLORER"
+    ]
+    if len(explorer_ships) > 0:
+        sorted_ships["EXPLORER"] = explorer_ships
+    #
+    # surveyor
+    surveyor_ships = [
+        _summarise_ship(s, behaviours) for s in all_ships if s.role == "SURVEYOR"
+    ]
+    if len(surveyor_ships) > 0:
+        sorted_ships["SURVEYOR"] = surveyor_ships
+
+    #
+    # extractor
+    extractor_ships = [
+        _summarise_ship(s, behaviours)
+        for s in all_ships
+        if s.role == "EXCAVATOR" and s.can_extract
+    ]
+    if len(extractor_ships) > 0:
+        sorted_ships["EXTRACTOR"] = extractor_ships
+    siphoner_ships = [
+        _summarise_ship(s, behaviours)
+        for s in all_ships
+        if s.role == "EXCAVATOR" and s.can_siphon
+    ]
+    if len(siphoner_ships) > 0:
+        sorted_ships["SIPHONER"] = siphoner_ships
+
+    return sorted_ships
+
+
+def query_system_ships(st: SpaceTraders, system_symbol):
+    sql = """with data as (
+select ship_symbol, max(event_timestamp) as timestamp
+from logging l 
+where event_name = 'BEGIN_BEHAVIOUR_SCRIPT'
+and event_timestamp >= now() - interval '1 day'
+group by 1 
+)
+select l.ship_symbol, event_params ->> 'script_name' as script_name from logging l join data d on l.event_timestamp = d.timestamp and d.ship_symbol = l.ship_symbol
+order by 1 """
+    results = try_execute_select(st.connection, sql, ())
+    behaviours = {r[0]: r[1] for r in results}
+    all_ships = [
+        s for s in st.ships_view().values() if s.nav.system_symbol == system_symbol
+    ]
+    return {
+        "ships": _process_some_ships(st, all_ships, behaviours),
+        "total_ships": len(all_ships),
+        "page_title": f"All ships in {system_symbol}",
+    }
 
 
 def query_one_type_of_ships(st: SpaceTraders, role: str):
@@ -707,79 +757,38 @@ order by 1 """
     results = try_execute_select(st.connection, sql, ())
     behaviours = {r[0]: r[1] for r in results}
     all_ships = st.ships_view().values()
-    if role == "COMMAND":
-        sorted_ships = {
-            "COMMAND": [
-                _summarise_ship(s, behaviours) for s in all_ships if s.role == "COMMAND"
-            ]
-        }
-    elif role == "TRANSPORT":
-        sorted_ships = {
-            "TRANSPORT": [
-                _summarise_ship(s, behaviours)
-                for s in all_ships
-                if s.role == "TRANSPORT"
-            ]
-        }
-    elif role == "SATELLITE":
-        sorted_ships = {
-            "SATELLITE": [
-                _summarise_ship(s, behaviours)
-                for s in all_ships
-                if s.role == "SATELLITE"
-            ]
-        }
-    elif role == "HAULER":
-        sorted_ships = {
-            "HAULER": [
-                _summarise_ship(s, behaviours) for s in all_ships if s.role == "HAULER"
-            ]
-        }
-    elif role == "REFINERY":
-        sorted_ships = {
-            "REFINERY": [
-                _summarise_ship(s, behaviours)
-                for s in all_ships
-                if s.role == "REFINERY"
-            ]
-        }
-    elif role == "EXTRACTOR":
-        sorted_ships = {
-            "EXTRACTOR": [
-                _summarise_ship(s, behaviours)
-                for s in all_ships
-                if s.role == "EXCAVATOR" and s.can_extract
-            ]
-        }
-    elif role == "SIPHONER":
-        sorted_ships = {
-            "SIPHONER": [
-                _summarise_ship(s, behaviours)
-                for s in all_ships
-                if s.role == "EXCAVATOR" and s.can_siphon
-            ]
-        }
+    if role in ["EXTRACTOR", "SIPHONER"]:
+        all_ships = [s for s in all_ships if s.role == "EXCAVATOR"]
+        if role == "EXTRACTOR":
+            all_ships = [s for s in all_ships if s.can_extract]
+        elif role == "SIPHONER":
+            all_ships = [s for s in all_ships if s.can_siphon]
+    else:
+        all_ships = [s for s in all_ships if s.role == role]
 
-        keys, all_ships = st.ships_view().items()
-        sorted_ships = {}
-        for ship in all_ships:
-            ship: Ship
-            sorted_ships[ship.nav.waypoint_symbol] = _summarise_ship(ship, behaviours)
-
-    return {"ships": sorted_ships}
+    sorted_ships = _process_some_ships(st, all_ships, behaviours)
+    return {
+        "ships": sorted_ships,
+        "total_ships": len(all_ships),
+        "page_title": f"All ships of type {role}",
+    }
 
 
 def _summarise_ship(ship: Ship, most_recent_behaviours: dict) -> dict:
     most_recent_behaviour = most_recent_behaviours.get(ship.name, None)
+    ship_travelling_intergaactic = False
     if ship.nav.status == "IN_TRANSIT":
         if waypoint_slicer(ship.nav.origin.symbol) == waypoint_slicer(
             ship.nav.destination.symbol
         ):
-            nav_string = f"🌍{waypoint_suffix(ship.nav.origin.symbol)} -> 🌎{waypoint_suffix(ship.nav.destination.symbol)}"
+            nav_string = f"{waypoint_suffix(ship.nav.origin.symbol)} -> {waypoint_suffix(ship.nav.destination.symbol)}"
+            system_string = f"""🌍{ship.nav.system_symbol}-"""
         else:
-            nav_string = f"🌍{ship.nav.origin.symbol} -> 🌎{ship.nav.destination.symbol}"
+            nav_string = f"🌌{ship.nav.origin.symbol}->{ship.nav.destination.symbol}"
+            system_string = ""
     else:
-        nav_string = f"🌏{waypoint_suffix(ship.nav.waypoint_symbol)}"
+        system_string = f"{ship.nav.system_symbol}-"
+        nav_string = f"{waypoint_suffix(ship.nav.waypoint_symbol)}"
     return {
         "symbol": waypoint_suffix(ship.name),
         "full_symbol": ship.name,
@@ -793,6 +802,8 @@ def _summarise_ship(ship: Ship, most_recent_behaviours: dict) -> dict:
         "fuel_max": ship.fuel_capacity,
         "nav": nav_string,
         "nav_status": ship.nav.status,
+        "system_nav": system_string,
+        "current_system": ship.nav.system_symbol,
         "current_waypoint": ship.nav.waypoint_symbol,
         "behaviour": most_recent_behaviour,
     }
@@ -804,8 +815,10 @@ def map_role(role) -> str:
         "EXCAVATOR": "⛏️",
         "HAULER": "🚛",
         "TRANSPORT": "🚚",
+        "SURVEYOR": "🔬",
         "SATELLITE": "🛰️",
         "REFINERY": "⚙️",
+        "EXPLORER": "🗺️",
     }
     return roles.get(role, role)
 
@@ -817,6 +830,7 @@ def map_frame(role) -> str:
         "FRAME_SHUTTLE": "⛵",
         "FRAME_MINER": "🚤",
         "FRAME_LIGHT_FREIGHTER": "🚤",
+        "FRAME_EXPLORER": "🚤",
         "FRAME_FRIGATE": "🚤",
         "FRAME_HEAVY_FREIGHTER": "⛴️",
     }
