@@ -11,14 +11,7 @@ from straders_sdk import SpaceTraders
 from straders_sdk.models import Waypoint
 from flask import Flask, render_template, request, send_from_directory
 from datetime import datetime, timedelta
-from query_functions import (
-    query_waypoint,
-    query_ship,
-    query_market,
-    query_system,
-    query_all_ships,
-    query_all_exports,
-)
+
 import query_functions as qf
 
 
@@ -81,21 +74,48 @@ def query_params(st: SpaceTraders, string):
     elif string == "HQ_SYSTEM":
         hq = st.view_my_self().headquarters
         string = waypoint_slicer(hq)
+    # starts with "SHIPS_"
+    elif string[0:10] == "SHIP-ROLE-":
+        ship_type = string[10:]
+        params = qf.query_one_type_of_ships(st, ship_type)
+        params["_template"] = "all_ships.html"
+        params["_query"] = string
+        return params
+    # starts with ships-
+    elif string[0:6] == "SHIPS-":
+        system = string[6:]
+        params = qf.query_system_ships(st, system)
+        params["_template"] = "all_ships.html"
+        params["_query"] = string
+        return params
     elif string == "ALL_SHIPS":
         params = qf.query_all_ships(st)
         params["_template"] = "all_ships.html"
         params["_query"] = string
         return params
     elif string == "ALL_EXPORTS":
-        params = qf.query_all_exports(
+        params = qf.query_exports_in_system(
             st, waypoint_slicer(st.view_my_self().headquarters)
         )
         params["_template"] = "all_exports.html"
         params["_query"] = string
 
         return params
+    # if string starts with "EXPORTS-"
+    elif string[0:8] == "EXPORTS-":
+        system = string[8:]
+        params = qf.query_exports_in_system(st, system)
+        params["_template"] = "all_exports.html"
+        params["_query"] = string
+        return params
+    elif string[0:8] == "IMPORTS-":
+        system = string[8:]
+        params = qf.query_imports_in_system(st, system)
+        params["_template"] = "all_imports.html"
+        params["_query"] = string
+        return params
     elif string == "ALL_IMPORTS":
-        params = qf.query_all_imports(
+        params = qf.query_imports_in_system(
             st, waypoint_slicer(st.view_my_self().headquarters)
         )
         params["_template"] = "all_imports.html"
@@ -106,21 +126,22 @@ def query_params(st: SpaceTraders, string):
         params["_template"] = "all_transactions.html"
         params["_query"] = string
         return params
-    wayp = st.waypoints_view_one(waypoint_slicer(string), string)
+
+    wayp = st.waypoints_view_one(string)
     if wayp:
-        params = query_waypoint(st, string)
+        params = qf.query_waypoint(st, string)
         params["_template"] = "waypoint_summary.html"
         params["_query"] = string
         return params
     syst = st.systems_view_one(string)
     if syst:
-        params = query_system(st, string)
+        params = qf.query_system(st, string)
         params["_template"] = "system_view.html"
         params["_query"] = string
         return params
     ship = st.ships_view_one(string)
     if ship:
-        params = query_ship(st, string)
+        params = qf.query_ship(st, string)
         params["_template"] = "ship_summary.html"
         params["_query"] = string
         return params

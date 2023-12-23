@@ -14,14 +14,18 @@
         text-decoration: none;
     }
 </style>
-<h1> All Ships </h1>
-All ships, grouped by [Type], or [Waypoint]
+<h1>{{page_title}} ({{total_ships}}) {% if _template and _query %}<a href='#'
+        onclick="window.open('large_window/{{_query}}','{{_query}}','menubar=no,toolbar=no')">[↗️]</a>{%
+    endif %} </h1>
 
 {% for ship_group, ships in ships.items() %}
 
-<h3> {{ship_group}} <a href="#"
-        onclick="toggle_div('ship_row_{{ship_group}}', 'ship_icon_{{ship_group}}'); return false;"
-        id="ship_icon_{{ship_group}}">🔽</a></h3>
+<h3> <a href="/large_window/SHIP-ROLE-{{ship_group}}"
+        onclick="fetch_block('SHIP-ROLE-{{ship_group}}','mainPanel'); return false;">{{ship_group}}</a> -
+    {{ships|length}} ships
+    <a href="#" onclick="toggle_div('ship_row_{{ship_group}}', 'ship_icon_{{ship_group}}'); return false;"
+        id="ship_icon_{{ship_group}}">🔽</a>
+</h3>
 <div class="conatiner">
     <div class="row" id="ship_row_{{ship_group}}">
 
@@ -32,7 +36,9 @@ All ships, grouped by [Type], or [Waypoint]
                     {{ship.frame_emoji}}]
             </a>
         </div><br />
-        <a href="#" onclick="fetch_block('{{ship.current_waypoint}}', 'object_summary'); return false;">{{ ship.nav
+        <a href="/small_window/{{ship.current_system}}"
+            onclick="fetch_block('{{ship.current_system}}', 'mainPanel'); return false ;">{{ship.system_nav}}</a><a
+            href="#" onclick="fetch_block('{{ship.current_waypoint}}', 'object_summary'); return false;">{{ ship.nav
             }}</a>
         <br />
         📦{{ship.cargo}}/{{ship.cargo_max}} <div style="text-align:right; float:right;">

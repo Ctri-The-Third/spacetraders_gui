@@ -1,4 +1,3 @@
-"X1-PK16" 87 ships 9405 total TV 1672 total bought 1055 extracted 0 recent profit
 <div class="container mt-3">
     <div class="row system_overview">
         <div class="col-lg-2 col-sm-12 col-md-6  ">
@@ -10,10 +9,18 @@
             endif %}
         </div>
         <div class="col-lg-2 col-sm-12 col-md-6">
-            <b>{{system.ships}}</b> ships present
+            <a href="/large_window/SHIPS-{{system.symbol}}/"
+                onclick="fetch_block('SHIPS-{{system.symbol}}','mainPanel'); return false;"><b>{{system.ships}}</b>
+                ships present</a>
         </div>
         <div class="col-lg-2 col-sm-12 col-md-6">
-            <b>{{system.total_export_tv}}</b> available?
+            <a href="/large_window/EXPORTS-{{system.symbol}}/"
+                onclick="fetch_block('EXPORTS-{{system.symbol}}','mainPanel'); return false;">
+
+                <b>{{system.total_export_tv}}</b> produced</a>
+            <a href="/large_window/IMPORTS-{{system.symbol}}/"
+                onclick="fetch_block('IMPORTS-{{system.symbol}}','mainPanel'); return false;">
+                <b>{{system.total_import_tv}}</b> wanted</a>
         </div>
         <div class="col-lg-2 col-sm-12 col-md-6">
             <b>{{system.units_exported}}</b> bought &lt; 2hrs & &gt; 1hr ago
