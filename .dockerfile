@@ -1,4 +1,4 @@
-FROM python:latest
+FROM python:3-slim-bookworm
 Copy ./spacetraders_sdk/ ./spacetraders_sdk 
 run python -m pip install -r spacetraders_sdk/requirements.txt
 copy ./requirements.txt ./requirements.txt
