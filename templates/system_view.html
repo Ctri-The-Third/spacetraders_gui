@@ -1,9 +1,38 @@
+"X1-PK16" 87 ships 9405 total TV 1672 total bought 1055 extracted 0 recent profit
+<div class="container mt-3">
+    <div class="row system_overview">
+        <div class="col-lg-2 col-sm-12 col-md-6  ">
+            <b><a href="#" onclick="fetch_block('{{system.symbol}}','mainPanel'); return false;">
+                    [{{system.symbol}}] </a></b>
+
+            {% if _template and _query %}<a href='#'
+                onclick=" window.open('small_window/{{_query}}','{{_query}}','menubar=no,toolbar=no, width=425,height=375')">[↗️]</a>{%
+            endif %}
+        </div>
+        <div class="col-lg-2 col-sm-12 col-md-6">
+            <b>{{system.ships}}</b> ships present
+        </div>
+        <div class="col-lg-2 col-sm-12 col-md-6">
+            <b>{{system.total_export_tv}}</b> available?
+        </div>
+        <div class="col-lg-2 col-sm-12 col-md-6">
+            <b>{{system.units_exported}}</b> bought &lt; 2hrs & &gt; 1hr ago
+        </div>
+        <div class="col-lg-2 col-sm-12 col-md-6">
+            <b>{{system.units_extracted}}</b> extracts &lt;= 1hr ago
+        </div>
+        <div class="col-lg-2 col-sm-12 col-md-6">
+            <b> {{system.profit_an_hour_ago}}</b> profit &lt;= 1hr ago
+        </div>
+    </div>
+</div>
 <svg id="systemView"
     style="border:3px solid green;  background-color:#333; width:100%; height:100%; border-radius: 17px;"
     onmousedown="startDrag(event)" , onmousemove="drag(event)" , onmouseup="endDrag(event)" ,
     onmouseleave="endDrag(event)">
 
-    <circle cx="{{centre.x}}" cy="{{centre.y}}" r="7" fill="yellow" id="{{centre.symbol}}" class="draggable"></circle>
+    <circle cx="{{centre.x}}" cy="{{centre.y}}" r="7" fill="yellow" id="{{centre.symbol}}" class="draggable">
+    </circle>
     {% if waypoints %}
     {% for w in waypoints %}
 

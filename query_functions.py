@@ -2,11 +2,17 @@ from straders_sdk.client_postgres import SpaceTradersPostgresClient as SpaceTrad
 from straders_sdk.pathfinder import PathFinder
 from straders_sdk.models import Waypoint
 from straders_sdk.ship import Ship
-from straders_sdk.utils import waypoint_slicer, try_execute_select, waypoint_suffix
+from straders_sdk.utils import (
+    waypoint_slicer,
+    try_execute_select,
+    try_execute_upsert,
+    waypoint_suffix,
+)
 from datetime import datetime, timedelta
 from math import floor
 from dataclasses import dataclass
 import json
+import threading
 
 
 def query_waypoint(client: SpaceTraders, waypoint: str):
@@ -386,7 +392,45 @@ def query_system(st: SpaceTraders, system_symbol: str):
         "y": -min_y - (max_y / 2),
         "symbol": syst.symbol,
     }
-    return {"waypoints": waypoints, "centre": centre}
+
+    sql = """select ships, total_export_tv, units_exported, units_extracted, profit_an_hour_ago, last_updated from 	
+mat_system_summary 
+where agent_name = %s
+and system_symbol = %s"""
+    system = {}
+    results = try_execute_select(
+        st.connection, sql, (st.current_agent_symbol, syst.symbol)
+    )
+    if len(results) > 0:
+        result = results[0]
+        system["symbol"] = syst.symbol
+        system["ships"] = result[0]
+        system["total_export_tv"] = result[1]
+        system["units_exported"] = result[2]
+        system["units_extracted"] = result[3]
+        system["profit_an_hour_ago"] = result[4]
+        system["last_updated"] = result[5]
+        if result[5] < datetime.now() - timedelta(hours=1):
+            refresh_system_summary(st.connection)
+    else:
+        system["ships"] = 0
+        system["total_export_tv"] = 0
+        system["units_exported"] = 0
+        system["units_extracted"] = 0
+        system["profit_an_hour_ago"] = 0
+        system["last_updated"] = "never"
+
+    return {"waypoints": waypoints, "centre": centre, "system": system}
+
+
+def refresh_system_summary(connection):
+    thread = threading.Thread(target=_refresh_system_summary, args=(connection,))
+    thread.start()
+
+
+def _refresh_system_summary(connection):
+    sql = """refresh materialized view mat_system_summary;"""
+    try_execute_upsert(connection, sql, ())
 
 
 def query_session(st: SpaceTraders, session_id):
