@@ -14,8 +14,7 @@ from datetime import datetime, timedelta
 
 import query_functions as qf
 
-
-from static.scripts.load_graphs import load_graphs
+import static.scripts.load_graphs as lg
 
 config_file_name = "user.json"
 saved_data = json.load(open(config_file_name, "r+"))
@@ -59,35 +58,15 @@ def load_icon(string):
 
 def query_params(st: SpaceTraders, string):
     st = setup_st(request)
-    if string[0:4] == "MKT-" and st.system_market(
-        st.waypoints_view_one(waypoint_slicer(string[4:]), string[4:])
-    ):
-        params = qf.query_market(st, string)
-        params["_template"] = "market_summary.html"
-        params["_query"] = string
-        return params
-    elif string[0:5] == "SESH-":
-        params = qf.query_session(st, string)
-        params["_template"] = "session_summary.html"
+    if string == "ALL_SYSTEMS":
+        params = qf.query_all_systems(st)
+        params["_template"] = "all_systems.html"
         params["_query"] = string
         return params
     elif string == "HQ_SYSTEM":
         hq = st.view_my_self().headquarters
         string = waypoint_slicer(hq)
     # starts with "SHIPS_"
-    elif string[0:10] == "SHIP-ROLE-":
-        ship_type = string[10:]
-        params = qf.query_one_type_of_ships(st, ship_type)
-        params["_template"] = "all_ships.html"
-        params["_query"] = string
-        return params
-    # starts with ships-
-    elif string[0:6] == "SHIPS-":
-        system = string[6:]
-        params = qf.query_system_ships(st, system)
-        params["_template"] = "all_ships.html"
-        params["_query"] = string
-        return params
     elif string == "ALL_SHIPS":
         params = qf.query_all_ships(st)
         params["_template"] = "all_ships.html"
@@ -100,19 +79,6 @@ def query_params(st: SpaceTraders, string):
         params["_template"] = "all_exports.html"
         params["_query"] = string
 
-        return params
-    # if string starts with "EXPORTS-"
-    elif string[0:8] == "EXPORTS-":
-        system = string[8:]
-        params = qf.query_exports_in_system(st, system)
-        params["_template"] = "all_exports.html"
-        params["_query"] = string
-        return params
-    elif string[0:8] == "IMPORTS-":
-        system = string[8:]
-        params = qf.query_imports_in_system(st, system)
-        params["_template"] = "all_imports.html"
-        params["_query"] = string
         return params
     elif string == "ALL_IMPORTS":
         params = qf.query_imports_in_system(
@@ -127,6 +93,37 @@ def query_params(st: SpaceTraders, string):
         params["_query"] = string
         return params
 
+    elif string[0:5] == "SESH-":
+        params = qf.query_session(st, string)
+        params["_template"] = "session_summary.html"
+        params["_query"] = string
+        return params
+    elif string[0:10] == "SHIP-ROLE-":
+        ship_type = string[10:]
+        params = qf.query_one_type_of_ships(st, ship_type)
+        params["_template"] = "all_ships.html"
+        params["_query"] = string
+        return params
+    # starts with ships-
+    elif string[0:6] == "SHIPS-":
+        system = string[6:]
+        params = qf.query_system_ships(st, system)
+        params["_template"] = "all_ships.html"
+        params["_query"] = string
+        return params
+    # if string starts with "EXPORTS-"
+    elif string[0:8] == "EXPORTS-":
+        system = string[8:]
+        params = qf.query_exports_in_system(st, system)
+        params["_template"] = "all_exports.html"
+        params["_query"] = string
+        return params
+    elif string[0:8] == "IMPORTS-":
+        system = string[8:]
+        params = qf.query_imports_in_system(st, system)
+        params["_template"] = "all_imports.html"
+        params["_query"] = string
+        return params
     wayp = st.waypoints_view_one(string)
     if wayp:
         params = qf.query_waypoint(st, string)
@@ -145,8 +142,14 @@ def query_params(st: SpaceTraders, string):
         params["_template"] = "ship_summary.html"
         params["_query"] = string
         return params
+    raise FileNotFoundError
 
-    # if it matches a player - go get the player summary
+
+@app.route("/query/tradegood/<mkt_sym>/<tg_sym>")
+def query_market_tradegood(tg_sym, mkt_sym):
+    params = lg.market_listing_over_time(setup_st(request), tg_sym, mkt_sym)
+    return json.dumps(params)
+    # if it matches a player - go get the plaer summary
     # if it matches a ship - go get the ship summary
 
 
@@ -167,7 +170,7 @@ def graph_template():
 
 @app.route("/graph_content/")
 def graph_content():
-    return load_graphs(setup_st(request))
+    return lg.load_graphs(setup_st(request))
 
 
 def setup_st(request) -> SpaceTraders:

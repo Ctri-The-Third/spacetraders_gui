@@ -350,8 +350,38 @@ limit 1
     return return_obj
 
 
-def query_market(cliet: SpaceTraders, market_symbol: str):
-    return {}
+def query_all_systems(st: SpaceTraders):
+    sql = """select mss.system_symbol, ships as system_ships
+, coalesce(total_export_tv, 0) as total_export_tv
+, coalesce(units_exported, 0) as units_exported
+, coalesce(profit_an_hour_ago,0) as profit_an_hour_ago
+, fuel_most_expensive_cr
+ from mat_system_summary mss
+join agents a on mss.agent_name = a.agent_symbol
+join waypoints w on w.waypoint_symbol = headquarters
+where mss.agent_name = %s
+order by w.system_symbol = mss.system_Symbol desc, mss.system_Symbol
+"""
+
+    results = try_execute_select(st.connection, sql, (st.current_agent_symbol,))
+    systems = []
+    for result in results:
+        systems.append(
+            {
+                "system_symbol": result[0],
+                "system_ships": result[1],
+                "total_export_tv": result[2],
+                "units_exported": result[3],
+                "profit_an_hour_ago": result[4],
+                "fuel_most_expensive_cr": result[5],
+            }
+        )
+    return {
+        "systems": systems,
+        "agent_name": st.current_agent_symbol,
+        "agent_credits": st.view_my_self().credits,
+        "agent_faction": st.view_my_self().starting_faction,
+    }
 
 
 def query_system(st: SpaceTraders, system_symbol: str):
@@ -392,16 +422,15 @@ def query_system(st: SpaceTraders, system_symbol: str):
         "y": -min_y - (max_y / 2),
         "symbol": syst.symbol,
     }
-
-    sql = """select ships, total_export_tv, units_exported, units_extracted, profit_an_hour_ago, last_updated, total_import_tv from 	
-mat_system_summary 
-where agent_name = %s
-and system_symbol = %s"""
+    sql = """ select ships, total_export_tv,  units_exported, units_extracted, profit_an_hour_ago, last_updated,total_import_tv, fuel_export_symbols, best_export_price, fuel_most_expensive_sym, fuel_most_expensive_cr, number_of_export_markets, number_of_exchange_markets
+	FROM public.mat_system_summary
+    where agent_name = %s
+    and system_symbol = %s"""
     system = {}
     results = try_execute_select(
         st.connection, sql, (st.current_agent_symbol, syst.symbol)
     )
-    if len(results) > 0:
+    if results and len(results) > 0:
         result = results[0]
         system["symbol"] = syst.symbol
         system["ships"] = result[0]
@@ -411,6 +440,12 @@ and system_symbol = %s"""
         system["units_extracted"] = result[3]
         system["profit_an_hour_ago"] = result[4]
         system["last_updated"] = result[5]
+        system["fuel_export_symbol"] = result[7][0] if len(result[7]) > 0 else None
+        system["fuel_best_export_price"] = result[8]
+        system["fuel_most_expensive_sym"] = result[9]
+        system["fuel_most_expensive_cr"] = result[10]
+        system["number_of_export_markets"] = result[11]
+        system["number_of_exchange_markets"] = result[12]
         if result[5] < datetime.now() - timedelta(hours=1):
             refresh_system_summary(st.connection)
     else:

@@ -18,6 +18,7 @@
                     <input type="text" class="form-control" placeholder="X1-U49-A1" id="controlinput"> </input>
                     <div class="input-group-append">
                         <button class="btn btn-outline-secondary" type="button" id="showHQSystem">HQ System</button>
+                        <button class="btn btn-outline-secondary" type="button" id="showAllSystems">ALL Systems</button>
                         <button class="btn btn-outline-secondary" type="button" id="showAllShips">Ships</button>
                         <button class="btn btn-outline-secondary" type="button" id="showSomeGraphs">Graphs</button>
                     </div>
@@ -35,7 +36,10 @@
                         <a href="https://spacetraders.io"> What's Space Traders?</a> <br />
                         <p>SpaceTraders is an API-based game where you acquire and manage a fleet of ships to explore,
                             trade, and fight your way across the galaxy. Use any programming language with our API to
-                            control the most powerful fleet in universe.
+                            control the most powerful fleet in universe.<br />
+                            This UI is designed to work in tandem with a project developed with the <A
+                                href="https://github.com/Ctri-The-Third/spacetraders_sdk">straders_sdk</A> - without it
+                            features are limited.
 
                             To play here, enter your token below.</p>
                         <textarea id="sTradersToken" name="token" rows="8" cols="80" placeholder="token"></textarea>
@@ -87,6 +91,16 @@
         fetch_block(query, "mainPanel");
     })
 
+    b = document.getElementById("showAllSystems")
+    b.addEventListener("click", function () {
+        query = "ALL_SYSTEMS";
+        fetch_block(query, "mainPanel");
+    })
+    b.addEventListener("touchstart", function () {
+        query = "ALL_SYSTEMS";
+        fetch_block(query, "mainPanel");
+    })
+
     b = document.getElementById("showAllShips")
     b.addEventListener("click", function () {
         query = "ALL_SHIPS";
@@ -99,7 +113,7 @@
 
     b = document.getElementById("showSomeGraphs")
     b.addEventListener("click", function () {
-        fetchGraphsPage("mainPanel");
+        fetchGraph("/graph_content/", "mainPanel");
 
     })
     b.addEventListener("touchstart", function () {

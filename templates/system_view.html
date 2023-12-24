@@ -2,61 +2,68 @@
     <div class="row system_overview">
         <div class="col-lg-2 col-sm-12 col-md-6  ">
             <b><a href="#" onclick="fetch_block('{{system.symbol}}','mainPanel'); return false;">
-                    [{{system.symbol}}] </a></b>
-
-            {% if _template and _query %}<a href='#'
+                    [{{system.symbol}}] </a></b>{% if _template and _query %}<a href='#'
                 onclick=" window.open('small_window/{{_query}}','{{_query}}','menubar=no,toolbar=no, width=425,height=375')">[↗️]</a>{%
-            endif %}
+            endif %}<br />
+            hourly stats
         </div>
         <div class="col-lg-2 col-sm-12 col-md-6">
             <a href="/large_window/SHIPS-{{system.symbol}}/"
-                onclick="fetch_block('SHIPS-{{system.symbol}}','mainPanel'); return false;"><b>{{system.ships}}</b>
+                onclick="fetch_block('SHIPS-{{system.symbol}}','systemPanel'); return false;"><b>{{system.ships}}</b>
                 ships present</a>
         </div>
         <div class="col-lg-2 col-sm-12 col-md-6">
             <a href="/large_window/EXPORTS-{{system.symbol}}/"
-                onclick="fetch_block('EXPORTS-{{system.symbol}}','mainPanel'); return false;">
+                onclick="fetch_block('EXPORTS-{{system.symbol}}','systemPanel'); return false;">
 
                 <b>{{system.total_export_tv}}</b> produced</a>
             <a href="/large_window/IMPORTS-{{system.symbol}}/"
-                onclick="fetch_block('IMPORTS-{{system.symbol}}','mainPanel'); return false;">
+                onclick="fetch_block('IMPORTS-{{system.symbol}}','systemPanel'); return false;">
                 <b>{{system.total_import_tv}}</b> wanted</a>
         </div>
         <div class="col-lg-2 col-sm-12 col-md-6">
-            <b>{{system.units_exported}}</b> bought &lt; 2hrs & &gt; 1hr ago
+            <b>{{system.units_exported}}</b> bought <br />>
+            <b>{{system.profit_an_hour_ago}}</b> €/hr
         </div>
         <div class="col-lg-2 col-sm-12 col-md-6">
             <b>{{system.units_extracted}}</b> extracts &lt;= 1hr ago
         </div>
         <div class="col-lg-2 col-sm-12 col-md-6">
-            <b> {{system.profit_an_hour_ago}}</b> profit &lt;= 1hr ago
+            ⛽<b><a href="/small_window/{{system.fuel_export_symbol}}"
+                    onclick="fetch_block('{{system.fuel_export_symbol}}','object_summary'); return false">{{system.fuel_best_export_price}}</b></a>
+            ->
+            <b><a href="/small_window/{{system.fuel_most_expensive_sym}}"
+                    onclick="fetch_block('{{system.fuel_most_expensive_sym}}','object_summary'); return false">{{system.fuel_most_expensive_cr}}</b></a><br />
+            {{system.number_of_exchange_markets}} exch
         </div>
     </div>
 </div>
-<svg id="systemView"
-    style="border:3px solid green;  background-color:#333; width:100%; height:100%; border-radius: 17px;"
-    onmousedown="startDrag(event)" , onmousemove="drag(event)" , onmouseup="endDrag(event)" ,
-    onmouseleave="endDrag(event)">
+<div id="systemPanel" style="height:100%">
+    <svg id="systemView"
+        style="border:3px solid green;  background-color:#333; width:100%; height:100%; border-radius: 17px;"
+        onmousedown="startDrag(event)" , onmousemove="drag(event)" , onmouseup="endDrag(event)" ,
+        onmouseleave="endDrag(event)">
 
-    <circle cx="{{centre.x}}" cy="{{centre.y}}" r="7" fill="yellow" id="{{centre.symbol}}" class="draggable">
-    </circle>
-    {% if waypoints %}
-    {% for w in waypoints %}
+        <circle cx="{{centre.x}}" cy="{{centre.y}}" r="7" fill="yellow" id="{{centre.symbol}}" class="draggable">
+        </circle>
+        {% if waypoints %}
+        {% for w in waypoints %}
 
-    {% if w.type in ('PLANET', 'GAS_GIANT', 'ASTEROID_BASE', 'JUMP_GATE') %}
-    <circle cx="{{centre.x}}" cy="{{centre.y}}" r="{{w.distance}}" stroke="#444" stroke-width="1" fill="none"
-        class="draggable">
-    </circle>
-    <circle cx="{{w.x}}" cy="{{w.y}}" r="5" fill="red" id="{{w.symbol}}" class="draggable"></circle>
-    {% elif w.waypoint_type == 'ASTEROID' %}
-    <circle cx="{{w.x}}" cy="{{w.y}}" r="5" fill="orange" id="{{w.symbol}}" class="draggable">
-    </circle>
+        {% if w.type in ('PLANET', 'GAS_GIANT', 'ASTEROID_BASE', 'JUMP_GATE') %}
+        <circle cx="{{centre.x}}" cy="{{centre.y}}" r="{{w.distance}}" stroke="#444" stroke-width="1" fill="none"
+            class="draggable">
+        </circle>
+        <circle cx="{{w.x}}" cy="{{w.y}}" r="5" fill="red" id="{{w.symbol}}" class="draggable"></circle>
+        {% elif w.waypoint_type == 'ASTEROID' %}
+        <circle cx="{{w.x}}" cy="{{w.y}}" r="5" fill="orange" id="{{w.symbol}}" class="draggable">
+        </circle>
 
-    {% else %}
-    <circle cx="{{w.x}}" cy="{{w.y}}" r="5" fill="green" id="{{w.symbol}}" class="draggable">
-    </circle>
-    {% endif %}
+        {% else %}
+        <circle cx="{{w.x}}" cy="{{w.y}}" r="5" fill="green" id="{{w.symbol}}" class="draggable">
+        </circle>
+        {% endif %}
 
-    {% endfor %}
-    {% endif %}
-</svg>
+        {% endfor %}
+        {% endif %}
+    </svg>
+</div>

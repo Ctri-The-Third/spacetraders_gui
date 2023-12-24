@@ -15,7 +15,7 @@ Co-located waypoints: {% for waypoint in co_located_waypoints %}
 <hr />
 {% if shipyard %}
 <h1>shipyard</h1>
-<table>
+<table class="table table-bordered" data-bs-theme="dark">
     <thead>
         <tr>
             <th>Ship Type</th>
@@ -51,7 +51,9 @@ last checked = {{market_checked_ts}}<br />
         <tbody>
             {% for item in market_items %}
             <tr>
-                <td>{{item.trade_symbol}}</td>
+                <td><a href="#"
+                        onclick="fetchGraph('query/tradegood/{{waypoint_symbol}}/{{item.trade_symbol}}', 'object_detail'); return false;">{{item.trade_symbol}}</a>
+                </td>
                 <td>{{item.supply}}</td>
                 <td>{{item.buy_price}}</td>
                 <td>{{item.sell_price}}</td>

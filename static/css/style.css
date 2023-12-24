@@ -68,6 +68,18 @@ body a {
 
 }
 
+.system_row {
+    margin-top: 2px;
+    border: 2px solid green;
+    border-bottom: 1px solid green;
+    border-top: 1px solid green;
+    border-radius: 10px;
+    padding: 4px;
+    text-align: center;
+
+}
+
+
 .system_overview div {
     border: 2px solid green;
     border-radius: 10px;

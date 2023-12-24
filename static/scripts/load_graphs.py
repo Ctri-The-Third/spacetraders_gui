@@ -1,5 +1,6 @@
 from straders_sdk import SpaceTraders
 from straders_sdk.utils import try_execute_select
+from straders_sdk.constants import SUPPLY_LEVELS, ACTIVITY_LEVELS
 from datetime import datetime, timedelta
 import plotly.express as px
 import plotly.graph_objects as go
@@ -8,6 +9,33 @@ from flask import jsonify
 import json
 import pandas as pd
 import math
+
+
+def _default_layout(title: str, y_axis_title: str):
+    return {
+        "title": title,
+        "xaxis": {"title": "Time", "color": "white"},
+        "yaxis": {"title": y_axis_title, "color": "white"},
+        "paper_bgcolor": "rgb(55,55,55)",
+        "plot_bgcolor": "rgb(55,55,55)",
+        "font": {"color": "white"},
+        "margin": {"t": 40, "b": 40, "l": 40, "r": 40, "pad": 4},
+    }
+
+
+def _trace(x, y, name, yaxis="y1", mode="lines+markers", color=None):
+    return_obj = {
+        "x": x,
+        "y": y,
+        "type": "scatter",
+        "mode": mode,
+        "name": name,
+        "yaxis": yaxis,
+        "font": {"color": "white"},
+    }
+    if color:
+        return_obj["marker"] = {"color": color}
+    return return_obj
 
 
 def load_graphs(st: SpaceTraders):
@@ -39,37 +67,16 @@ def load_graphs(st: SpaceTraders):
         cleaned_list = [
             None if math.isnan(y) else y for y in credits_df[agent].to_list()
         ]
-        trace = {
-            "x": [t.isoformat() for t in credits_df["time"].to_list()],
-            "y": cleaned_list,
-            "type": "scatter",
-            "mode": "lines+markers",
-            "name": agent,
-        }
+        trace = _trace(
+            [t.isoformat() for t in credits_df["time"].to_list()],
+            cleaned_list,
+            agent,
+        )
         plotly_data.append(trace)
 
-        # cleaned_list = [
-        #    None if math.isnan(y) else y for y in credits_change_df[agent].to_list()
-        # ]
-        # trace2 = {
-        #    "x": [t.isoformat() for t in credits_change_df["time"].to_list()],
-        #    "y": cleaned_list,
-        #    "type": "scatter",
-        #    "mode": "lines+markers",
-        #    "name": f"{agent}-changes",
-        #    "yaxis": "y2",
-        # }
-        # plotly_data.append(trace2)
+    layout = _default_layout("Credits Over Time", "Credits")
+    layout["yaxis2"] = ({"title": "credit_change", "overlaying": "y", "side": "right"},)
 
-    layout = {
-        "title": "Credits and Other Credits Over Time",
-        "xaxis": {"title": "Time"},
-        "yaxis": {"title": "Credits"},
-        "yaxis2": {"title": "credit_change", "overlaying": "y", "side": "right"},
-    }
-    # Serialize and use jsonify to ensure proper content type
-    # output = df.to_json(orient="records")
-    # print(json.dumps(df.to_dict(), indent=4))
     return json.dumps(
         {
             "data": plotly_data,
@@ -100,3 +107,95 @@ if __name__ == "__main__":
         current_agent_symbol=user,
     )
     print(load_graphs(st))
+
+
+def market_listing_over_time(st: SpaceTraders, trade_symbol: str, market_symbol: str):
+    sql = """select event_timestamp, SUPPLY, coalesce(activity,'WEAK') as activity
+    , (case when type = 'EXPORT' then CURRENT_PURCHASE_PRICE else case when type ='IMPORT' then CURRENT_SELL_PRICE else (current_sell_price+current_purchase_price)/2 end end)::integer as current_impexp_price
+    , mc.current_Trade_volume::integer
+    from market_changes mc
+    where market_symbol = %s
+    and trade_symbol = %s
+    and event_timestamp >= now() - interval ' 1 day'
+    order by 1"""
+    results = try_execute_select(st.connection, sql, (market_symbol, trade_symbol))
+    df = pd.DataFrame(
+        results,
+        columns=[
+            "event_timestamp",
+            "supply",
+            "activity",
+            "current_impexp_price",
+            "current_trade_volume",
+        ],
+    )
+    df["supply_nermic"] = df["supply"].map(SUPPLY_LEVELS)
+    df["activity_nermic"] = df["activity"].map(ACTIVITY_LEVELS)
+    layout = _default_layout(
+        f"{trade_symbol} at {market_symbol}", "import / export price"
+    )
+    layout["yaxis2"] = {
+        "title": "",
+        "color": "white",
+        "overlaying": "y",
+        "side": "right",
+    }
+
+    layout["yaxis3"] = {
+        "title": "Supply, activity, tradevolume",
+        "color": "white",
+        "overlaying": "y",
+        "side": "right",
+    }
+
+    traces = []
+
+    cleaned_price = [
+        None if math.isnan(y) else y for y in df["current_impexp_price"].to_list()
+    ]
+    cleaned_supply = [
+        None if math.isnan(y) else y for y in df["supply_nermic"].to_list()
+    ]
+    cleaned_activity = [
+        None if math.isnan(y) else y for y in df["activity_nermic"].to_list()
+    ]
+    cleaned_volume = [
+        None if math.isnan(y) else y for y in df["current_trade_volume"].to_list()
+    ]
+    cleaned_timestamps = [t.isoformat() for t in df["event_timestamp"].to_list()]
+    traces.append(
+        _trace(cleaned_timestamps, cleaned_price, "price", color="rgba(255,0,0,1)")
+    )
+    traces.append(
+        _trace(
+            cleaned_timestamps,
+            cleaned_supply,
+            "supply",
+            yaxis="y2",
+            color="rgba(125, 255, 0, 0.5)",
+        )
+    )
+    traces.append(
+        _trace(
+            cleaned_timestamps,
+            cleaned_activity,
+            "activity",
+            yaxis="y2",
+            color="rgba(0, 255, 125, 0.5)",
+        )
+    )
+    traces.append(
+        _trace(
+            cleaned_timestamps,
+            cleaned_volume,
+            "volume",
+            yaxis="y3",
+            color="rgba(0, 255, 0, 0.5)",
+        )
+    )
+
+    return {
+        "data": traces,
+        "layout": layout,
+        "page_title": f"Market Listing - {trade_symbol} at {market_symbol}",
+    }
