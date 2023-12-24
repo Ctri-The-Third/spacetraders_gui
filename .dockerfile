@@ -1,8 +1,8 @@
 FROM python:3-slim-bookworm
-Copy ./spacetraders_sdk/ ./spacetraders_sdk 
-run python -m pip install -r spacetraders_sdk/requirements.txt
 copy ./requirements.txt ./requirements.txt
 run python -m pip install -r requirements.txt
+Copy ./spacetraders_sdk/ ./spacetraders_sdk 
+run python -m pip install -r spacetraders_sdk/requirements.txt
 
 workdir spacetraders_sdk
 run chmod +x ./setup.sh
