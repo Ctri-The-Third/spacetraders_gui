@@ -14,8 +14,8 @@ import math
 def _default_layout(title: str, y_axis_title: str):
     return {
         "title": title,
-        "xaxis": {"title": "Time", "color": "white"},
-        "yaxis": {"title": y_axis_title, "color": "white"},
+        "xaxis": {"title": "Time", "color": "white", "gridcolor": "#777"},
+        "yaxis": {"title": y_axis_title, "color": "white", "gridcolor": "#777"},
         "paper_bgcolor": "rgb(55,55,55)",
         "plot_bgcolor": "rgb(55,55,55)",
         "font": {"color": "white"},
@@ -31,14 +31,14 @@ def _trace(x, y, name, yaxis="y1", mode="lines+markers", color=None):
         "mode": mode,
         "name": name,
         "yaxis": yaxis,
-        "font": {"color": "white"},
+        # "font": {"color": "white"},
     }
     if color:
         return_obj["marker"] = {"color": color}
     return return_obj
 
 
-def load_graphs(st: SpaceTraders):
+def load_graphs(st: SpaceTraders) -> dict:
     query = """
               with data as (         select date_trunc('hour', event_timestamp) + (date_part('minute', event_timestamp)::integer / 10 * interval '10 minute') AS interval_start
                 , agent_name, round(avg(new_credits)) as new_credits from logging 
@@ -75,14 +75,30 @@ def load_graphs(st: SpaceTraders):
         plotly_data.append(trace)
 
     layout = _default_layout("Credits Over Time", "Credits")
-    layout["yaxis2"] = ({"title": "credit_change", "overlaying": "y", "side": "right"},)
+    layout["yaxis2"] = {"title": "credit_change", "overlaying": "y", "side": "right"}
 
-    return json.dumps(
-        {
-            "data": plotly_data,
-            "layout": layout,
-        }
-    )
+    return {
+        "data": plotly_data,
+        "layout": layout,
+    }
+
+
+def json_into_html(plotly_dict: dict):
+    layout: dict = plotly_dict.get("layout", {})
+    yaxis2 = yaxis3 = None
+    # if "yaxis2" in layout:
+    #    yaxis2 = layout.get("yaxis2", None)
+    #    del layout["yaxis2"]
+    # if "yaxis3" in layout:
+    #    yaxis3 = layout.get("yaxis3", None)
+    #    del layout["yaxis3"]
+
+    fig = go.Figure(data=plotly_dict["data"], layout=layout)
+    if yaxis2:
+        fig.update_layout(yaxis2=yaxis2)
+    if yaxis3:
+        fig.update_layout(yaxis3=yaxis3)
+    return fig.to_html(full_html=False)
 
 
 if __name__ == "__main__":

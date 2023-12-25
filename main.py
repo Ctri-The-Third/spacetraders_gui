@@ -148,9 +148,21 @@ def query_params(st: SpaceTraders, string):
 @app.route("/query/tradegood/<mkt_sym>/<tg_sym>")
 def query_market_tradegood(tg_sym, mkt_sym):
     params = lg.market_listing_over_time(setup_st(request), tg_sym, mkt_sym)
+    params["_query"] = f"/query/tradegood/{mkt_sym}/{tg_sym}"
     return json.dumps(params)
     # if it matches a player - go get the plaer summary
     # if it matches a ship - go get the ship summary
+
+
+# I wa
+@app.route("/graph_window/query/tradegood/<mkt_sym>/<tg_sym>")
+def graph_window_query_market_tradegood(mkt_sym, tg_sym):
+    st = setup_st(request)
+    params = lg.market_listing_over_time(st, tg_sym, mkt_sym)
+    params["_query"] = f"/query/tradegood/{mkt_sym}/{tg_sym}"
+    params["_graph"] = json.dumps(params)
+    return render_template("graph_window.html", **params)
+    # turn the params into a plotly graph then pass to the graph window
 
 
 @app.route("/scripts/<script_file>")
@@ -170,7 +182,16 @@ def graph_template():
 
 @app.route("/graph_content/")
 def graph_content():
-    return lg.load_graphs(setup_st(request))
+    raw_graph = lg.load_graphs(setup_st(request))
+    return json.dumps(raw_graph)
+
+
+@app.route("/graph_window/graph_content/")
+def graph_window_graph_content():
+    st = setup_st(request)
+    params = {"_graph": lg.json_into_html(lg.load_graphs(setup_st(request)))}
+    params["_query"] = f"/graph_content"
+    return render_template("graph_window.html", **params)
 
 
 def setup_st(request) -> SpaceTraders:

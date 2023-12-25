@@ -6,17 +6,21 @@
 
 <table class="all_exports">
     <tr>
-        <th>trade_symbol</th>
-        <th>market_symbol</th>
+        <th>📈</th>
+        <th>trade<br />>symbol</th>
+        <th>market<br />>symbol</th>
         <th>supply</th>
         <th>activty</th>
-        <th>purchase_price</th>
-        <th>market_depth</th>
+        <th>purchase<br />>price</th>
+        <th>market<br />>depth</th>
         <th>units bought recently</th>
     </tr>
     {% for w in exports %}
     <tr style='border-top:3px solid green;' class="export" id="{{w.trade_symbol}}">
-
+        <td>
+            <a href="#"
+                onclick="fetchGraph('/query/tradegood/{{w.market_symbol}}/{{w.trade_symbol}}', 'mainPanel'); return false;">[📈]</a>
+        </td>
         <td>
             <img src="/icons/GOOD_{{w.trade_symbol}}.png" />{{w.trade_symbol}}
         </td>
@@ -44,6 +48,7 @@
 
     </tr>
     <tr>
+        <td></td>
         <td colspan="7" class="requirements">
             {% for e in w.requirements %} [<a href="#{{e.trade_symbol}}" onclick="highlight('{{e.trade_symbol}}')"><img
                     src="/icons/GOOD_{{e.trade_symbol}}.png" />{{e.trade_symbol}}

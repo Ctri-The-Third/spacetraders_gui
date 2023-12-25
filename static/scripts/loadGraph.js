@@ -11,9 +11,15 @@ function fetchGraph(url, return_div_id) {
             var plotLayout = data.layout
             var plotTitle = data.title
             console.log(data);
-
-            document.getElementById(return_div_id).innerHTML = "";
-
+            plotLayout["annotations"] = [];
+            plotLayout["annotations"][0] = {
+                x: 0,
+                y: 1.05,
+                xref: 'paper',
+                yref: 'paper',
+                text: '<a href="/graph_window' + url + '">[↗️]</a>',
+                showarrow: false
+            }
             Plotly.newPlot(return_div_id, plotData, plotLayout).then(function () {
                 // Once the plot is made, apply the theme
                 var update = {

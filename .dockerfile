@@ -5,8 +5,9 @@ Copy ./spacetraders_sdk/ ./spacetraders_sdk
 run python -m pip install -r spacetraders_sdk/requirements.txt
 
 workdir spacetraders_sdk
-run chmod +x ./setup.sh
-run /spacetraders_sdk/setup.sh
+run python3 -m build
+run python3 -m pip install dist/straders-2.1.4-py3-none-any.whl --force-reinstall
+
 
 workdir ..
 copy . . 

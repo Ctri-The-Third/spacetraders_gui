@@ -3,8 +3,8 @@
 {% include '_header.html' %}
 
 <body class="main_body">
-    <div class="small-square" id="object_detail" style="margin-top:15px;">
-        {% include _template %}
+    <div class="large-square" id="mainPanelWrapper">
+        {{_graph|safe}}
     </div>
 </body>
 
@@ -12,9 +12,9 @@
 <script>
     window.setInterval(function () {
         // This will reload the current document.
-        //window.location.reload();
-        fetch_block('{{_query}}', 'object_detail');
-    }, 10000)
+        fetchGraph('{{_query}}', 'mainPanelWrapper');
+    }, 60000)
+
 </script>
 
 </html>
