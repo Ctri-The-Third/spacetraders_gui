@@ -627,23 +627,48 @@ def _try_parse_begin_behaviour_script(ship_name, event_params: dict):
 
 def query_all_transactions(st: SpaceTraders):
     sql = """
-SELECT first_transaction_in_session, ship_symbol, trade_symbol, units_sold, average_sell_price, average_purchase_price, net_change, purchase_wp, sell_wp, session_id, units_purchased
+SELECT last_transaction_in_session, ship_symbol, trade_symbol, units_sold, average_sell_price, average_purchase_price, net_change, purchase_wp, sell_wp, session_id, units_purchased
 	FROM public.transaction_overview
     where ship_symbol ilike %s
     """
     results = try_execute_select(st.connection, sql, (f"{st.current_agent_symbol}%",))
+    params = _process_transactions(st, results)
+    params["page_title"] = f"{st.current_agent_symbol} - All Transactions, All Systems"
+    return params
+
+
+def query_system_transactions(st: SpaceTraders, system_symbol: str):
+    sql = """
+SELECT last_transaction_in_session, ship_symbol, trade_symbol, units_sold, average_sell_price, average_purchase_price, net_change, purchase_wp, sell_wp, session_id, units_purchased
+	FROM public.transaction_overview
+    where ship_symbol ilike %s
+    and purchase_wp ilike %s or sell_wp ilike %s
+    """
+    results = try_execute_select(
+        st.connection,
+        sql,
+        (f"{st.current_agent_symbol}%", f"{system_symbol}%", f"{system_symbol}%"),
+    )
+    params = _process_transactions(st, results)
+    params[
+        "page_title"
+    ] = f"{st.current_agent_symbol} - All Transactions, {system_symbol}"
+    return params
+
+
+def _process_transactions(self, results: list):
     transactions = []
     for result in results:
         start_time: datetime = result[0]
         if start_time.date() == datetime.now().date():
-            start_time_fmt = start_time.strftime(r"%H:%M:%S")
+            end_time_fmt = start_time.strftime(r"%H:%M:%S")
         else:
-            start_time_fmt = start_time.strftime(r"%Y-%m-%d %H:%M:%S")
+            end_time_fmt = start_time.strftime(r"%Y-%m-%d %H:%M:%S")
         purchase_sys = ""
         sell_sys = ""
         transactions.append(
             {
-                "start_time": start_time_fmt,
+                "end_time": end_time_fmt,
                 "ship_symbol": result[1],
                 "ship_suffix": waypoint_suffix(result[1]),
                 "trade_symbol": result[2],

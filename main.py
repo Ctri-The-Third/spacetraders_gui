@@ -124,6 +124,13 @@ def query_params(st: SpaceTraders, string):
         params["_template"] = "all_imports.html"
         params["_query"] = string
         return params
+    # TRANSACTIONS-
+    elif string[0:13] == "TRANSACTIONS-":
+        system = string[13:]
+        params = qf.query_system_transactions(st, system)
+        params["_template"] = "all_transactions.html"
+        params["_query"] = string
+        return params
     wayp = st.waypoints_view_one(string)
     if wayp:
         params = qf.query_waypoint(st, string)
@@ -158,9 +165,9 @@ def query_market_tradegood(tg_sym, mkt_sym):
 @app.route("/graph_window/query/tradegood/<mkt_sym>/<tg_sym>")
 def graph_window_query_market_tradegood(mkt_sym, tg_sym):
     st = setup_st(request)
-    params = lg.market_listing_over_time(st, tg_sym, mkt_sym)
-    params["_query"] = f"/query/tradegood/{mkt_sym}/{tg_sym}"
-    params["_graph"] = json.dumps(params)
+    params = {
+        "_graph": lg.json_into_html(lg.market_listing_over_time(st, tg_sym, mkt_sym))
+    }
     return render_template("graph_window.html", **params)
     # turn the params into a plotly graph then pass to the graph window
 

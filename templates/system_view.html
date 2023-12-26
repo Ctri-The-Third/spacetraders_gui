@@ -23,7 +23,9 @@
         </div>
         <div class="col-lg-2 col-sm-12 col-md-6">
             <b>{{system.units_exported}}</b> bought <br />>
-            <b>{{system.profit_an_hour_ago}}</b> €/hr
+            <b><a href="/large_window/TRANSACTIONS-{{system.symbol}}/"
+                    onclick="fetch_block('TRANSACTIONS-{{system.symbol}}','systemPanel'); return false;">
+                    {{system.profit_an_hour_ago}}</b> €/hr</a>
         </div>
         <div class="col-lg-2 col-sm-12 col-md-6">
             <b>{{system.units_extracted}}</b> extracts &lt;= 1hr ago
