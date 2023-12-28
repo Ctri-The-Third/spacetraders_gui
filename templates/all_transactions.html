@@ -1,4 +1,4 @@
-<h1>{{page_title}}
+<h1><a href="/large_window/{{_query}}" onclick="fetch_block('{{_query}}','mainPanel'); return false;">{{page_title}}</a>
     {% if _template and _query %}<a href='#'
         onclick="window.open('/large_window/{{_query}}','{{_query}}','menubar=no,toolbar=no')">[↗️]</a>{% endif %}
 </h1>
@@ -56,8 +56,8 @@
         <td>
             {% if t.purchase_wp %}<a href="#"
                 onclick="fetchGraph('/query/tradegood/{{t.purchase_wp}}/{{t.trade_symbol}}', 'object_summary'); return false;">
-                {{t.units_purchased}}</a{% else %} 0 {% endif %} | {% if t.sell_wp %}<a href="#"
-                    onclick="fetchGraph('/query/tradegood/{{t.sell_wp}}/{{t.trade_symbol}}', 'object_summary'); return false;">
+                {{t.units_purchased}}</a>{% else %} 0 {% endif %} | {% if t.sell_wp %} <a href="#"
+                onclick="fetchGraph('/query/tradegood/{{t.sell_wp}}/{{t.trade_symbol}}', 'object_summary'); return false;">
                 {{t.units_sold}}</a>{% else %} 0 {% endif %}
         </td>
         <td style="color:red;">

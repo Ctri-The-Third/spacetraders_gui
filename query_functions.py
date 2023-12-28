@@ -440,7 +440,7 @@ def query_system(st: SpaceTraders, system_symbol: str):
         system["units_extracted"] = result[3]
         system["profit_an_hour_ago"] = result[4]
         system["last_updated"] = result[5]
-        system["fuel_export_symbol"] = result[7][0] if len(result[7]) > 0 else None
+        system["fuel_export_symbol"] = result[7][0] if result[7] else None
         system["fuel_best_export_price"] = result[8]
         system["fuel_most_expensive_sym"] = result[9]
         system["fuel_most_expensive_cr"] = result[10]
@@ -650,9 +650,7 @@ SELECT last_transaction_in_session, ship_symbol, trade_symbol, units_sold, avera
         (f"{st.current_agent_symbol}%", f"{system_symbol}%", f"{system_symbol}%"),
     )
     params = _process_transactions(st, results)
-    params[
-        "page_title"
-    ] = f"{st.current_agent_symbol} - All Transactions, {system_symbol}"
+    params["page_title"] = f"Transactions {system_symbol}"
     return params
 
 
