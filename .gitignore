@@ -131,3 +131,4 @@ dmypy.json
 .pyre/
 user.json
 docker/PRD-build_and_run_UI_container.bat
+docker/PRD-build_and_push_container.bat
