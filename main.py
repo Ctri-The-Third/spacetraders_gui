@@ -63,6 +63,12 @@ def query_params(st: SpaceTraders, string):
         params["_template"] = "all_systems.html"
         params["_query"] = string
         return params
+    elif string in ("GALAXY", "ALL_SYSTEMS"):
+        params = qf.query_galaxy(st)
+        params["_template"] = "galaxy_view.html"
+        params["_query"] = string
+        return params
+
     elif string == "HQ_SYSTEM":
         hq = st.view_my_self().headquarters
         string = waypoint_slicer(hq)

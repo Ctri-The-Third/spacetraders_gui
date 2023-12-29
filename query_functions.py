@@ -97,6 +97,75 @@ where waypoint_symbol = %s
     return return_obj
 
 
+def query_galaxy(client: SpaceTraders):
+    min_x = 0
+    min_y = 0
+    max_x = 0
+    max_y = 0
+    sql = """select s.system_symbol, sector_symbol, s.type, s.x, s.y, count(wt.*) filter (where w.checked or wt.trait_symbol = 'UNCHARTED') = 0 as charted, w.under_construction
+from waypoints w 
+join systems s on w.system_Symbol = s.system_Symbol
+left join waypoint_traits wt on wt.waypoint_symbol = w.waypoint_symbol
+where w.type = 'JUMP_GATE'
+group by w.waypoint_symbol, s.system_symbol, s.sector_symbol, s.type, s.x, s.y 
+;
+
+        """
+    results = try_execute_select(client.connection, sql, ())
+    systems = [
+        {
+            "system_symbol": r[0],
+            "type": r[2],
+            "x": r[3] / 50,
+            "y": r[4] / 50,
+            "charted": r[5],
+            "under_construction": r[6],
+        }
+        for r in results
+    ]
+    sql = """select s_system_symbol, s.x s_x, s.y s_y, d_system_symbol, d.x d_x, d.y d_y
+from jumpgate_connections jc 
+join systems s on jc.s_system_symbol = s.system_symbol
+join systems d on jc.d_system_symbol = d.system_symbol
+    """
+    results = try_execute_select(client.connection, sql, ())
+    connections = [
+        {
+            "s_system_symbol": r[0],
+            "s_x": r[1] / 50,
+            "s_y": r[2] / 50,
+            "d_system_symbol": r[3],
+            "d_x": r[4] / 50,
+            "d_y": r[5] / 50,
+        }
+        for r in results
+    ]
+
+    # <!--
+    #        -->
+    for s in systems:
+        if s["x"] < min_x:
+            min_x = s["x"]
+        if s["y"] < min_y:
+            min_y = s["y"]
+        if s["x"] > max_x:
+            max_x = s["x"]
+        if s["y"] > max_y:
+            max_y = s["y"]
+    centre_x = -min_x - (max_x / 2)
+    centre_y = -min_y - (max_y / 2)
+    centre = {"x": centre_x, "y": centre_y}
+    for s in systems:
+        s["x"] -= min_x + (max_x / 2)
+        s["y"] -= min_y + (max_y / 2)
+    for c in connections:
+        c["s_x"] -= min_x + (max_x / 2)
+        c["s_y"] -= min_y + (max_y / 2)
+        c["d_x"] -= min_x + (max_x / 2)
+        c["d_y"] -= min_y + (max_y / 2)
+    return {"systems": systems, "connections": connections, "centre": centre}
+
+
 def query_imports_in_system(client: SpaceTraders, system_symbol: str):
     # SELECT system_symbol, market_symbol, trade_symbol, supply, activity, purchase_price, sell_price, market_depth, units_sold_recently
     # FROM public.import_overview;

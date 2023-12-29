@@ -1,0 +1,41 @@
+<div id="galaxyPanel" style="height:100%">
+    <svg id="systemView"
+        style="border:3px solid green;  background-color:#333; width:100%; height:100%; border-radius: 17px;"
+        onmousedown="startDrag(event)" , onmousemove="drag(event)" , onmouseup="endDrag(event)" ,
+        onmouseleave="endDrag(event)">
+
+        <circle cx="{{centre.x}}" cy="{{centre.y}}" r="7" fill="yellow" id="{{centre.symbol}}" class="draggable">
+        </circle>
+        {% if connections %}
+        {% for c in connections %}
+        <line x1="{{c.s_x}}" y1="{{c.s_y}}" x2="{{c.d_x}}" y2="{{c.d_y}}" stroke-width="1px" stroke="#555"
+            class="draggable" stroke-dasharray="5,5" s />
+        {% endfor %}
+        {% endif %}
+        {% for s in systems %}
+
+        <circle cx="{{s.x}}" cy="{{s.y}}" r="5" fill="green" id="{{s.system_symbol}}" class="draggable"> </circle>
+
+        {% endfor %}
+
+    </svg>
+</div>
+{% for s in systems %}
+{{s.system_symbol}} - {{s.x}} - {{s.y}} <br />
+{% endfor %}
+{
+"s_system_symbol": r[0],
+"s_x": r[1],
+"s_y": r[2],
+"d_system_symbol": r[3],
+"d_x": r[4],
+"d_y": r[5],
+}
+{
+"system_symbol": r[0],
+"type": r[2],
+"x": r[3],
+"y": r[4],
+"charted": r[5],
+"under_construction": r[6],
+}

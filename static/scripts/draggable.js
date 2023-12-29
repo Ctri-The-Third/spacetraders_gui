@@ -2,6 +2,7 @@
 selectedElement = null;
 function makeDraggable(evt) {
     svg = evt.target;
+    setupZoom(svg);
     svg.addEventListener('mousedown', startDrag);
     svg.addEventListener('mousemove', drag);
     svg.addEventListener('mouseup', endDrag);
@@ -10,10 +11,34 @@ function makeDraggable(evt) {
 function makeDraggableById(id) {
     alert("Getting element by id? " + id)
     svg = document.getElementById(id);
+    setupZoom(svg);
     svg.addEventListener('mousedown', startDrag);
     svg.addEventListener('mousemove', drag);
     svg.addEventListener('mouseup', endDrag);
     svg.addEventListener('mouseleave', endDrag)
+}
+
+function setupZoom(svg) {
+    let currentScale = 1;
+    console.log("Zoom setup complete")
+
+    function zoom(evt) {
+        console.log("Zooming")
+        evt.preventDefault();
+        const scaleFactor = 0.1;
+        const zoomDirection = evt.deltaY > 0 ? -1 : 1;
+
+        // Determine the new scale factor
+        currentScale *= (1 + scaleFactor * zoomDirection);
+
+        // Set the transform attribute with the new scaling
+        svg.setAttribute('transform', 'scale(' + currentScale + ')');
+
+    }
+
+    svg.addEventListener('wheel', zoom);
+
+
 }
 function startDrag(evt) {
     //alert("starting drag " + evt.target.id);
