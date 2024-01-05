@@ -40,11 +40,10 @@ last checked = {{market_checked_ts}}<br />
         <thead>
             <tr>
                 <th>trade_symbol</th>
-                <th>Supply</th>
+                <th>Type/ <br />Supply</th>
                 <th>buy price</th>
                 <th>sell value</th>
                 <th>depth</th>
-                <th>Type</th>
                 <th>Activity</th>
             </tr>
         </thead>
@@ -54,12 +53,13 @@ last checked = {{market_checked_ts}}<br />
                 <td><a href="#"
                         onclick="fetchGraph('query/tradegood/{{waypoint_symbol}}/{{item.trade_symbol}}', 'object_detail'); return false;">{{item.trade_symbol}}</a>
                 </td>
-                <td>{{item.supply}}</td>
+                <td><img src="/icons/{{item.type}}.png" alt="{{item.type}}" /><img src="/icons/{{item.supply}}.png"
+                        alt="{{item.supply}}" /></td>
                 <td>{{item.buy_price}}</td>
                 <td>{{item.sell_price}}</td>
                 <td>{{item.depth}}</td>
-                <td>{{item.type}}</td>
-                <td>{{item.activity}}</td>
+
+                <td><img src="/icons/{{item.activity}}.png" alt="{{item.activity}}" /></td>
             </tr>
             {% endfor %}
         </tbody>
