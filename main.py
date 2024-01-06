@@ -19,13 +19,13 @@ import os
 
 config_file_name = "user.json"
 saved_data = json.load(open(config_file_name, "r+"))
-db_host = os.environ.get("DB_HOST", None)
-db_port = os.environ.get("DB_PORT", None)
-db_name = os.environ.get("DB_NAME", None)
-db_user = os.environ.get("DB_USER", None)
-db_pass = os.environ.get("DB_PASS", None)
+db_host = os.environ.get("ST_DB_HOST", None)
+db_port = os.environ.get("ST_DB_PORT", None)
+db_name = os.environ.get("ST_DB_NAME", None)
+db_user = os.environ.get("ST_DB_USER", None)
+db_pass = os.environ.get("ST_DB_PASS", None)
 if not db_pass:
-    db_pass = os.environ.get("DB_PASSWORD", None)
+    db_pass = os.environ.get("ST_DB_PASSWORD", None)
 
 
 app = Flask(__name__)
