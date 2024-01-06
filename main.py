@@ -15,14 +15,17 @@ from datetime import datetime, timedelta
 import query_functions as qf
 
 import static.scripts.load_graphs as lg
+import os
 
 config_file_name = "user.json"
 saved_data = json.load(open(config_file_name, "r+"))
-db_host = saved_data.get("db_host", None)
-db_port = saved_data.get("db_port", None)
-db_name = saved_data.get("db_name", None)
-db_user = saved_data.get("db_user", None)
-db_pass = saved_data.get("db_pass", None)
+db_host = os.environ.get("DB_HOST", None)
+db_port = os.environ.get("DB_PORT", None)
+db_name = os.environ.get("DB_NAME", None)
+db_user = os.environ.get("DB_USER", None)
+db_pass = os.environ.get("DB_PASS", None)
+if not db_pass:
+    db_pass = os.environ.get("DB_PASSWORD", None)
 
 
 app = Flask(__name__)
