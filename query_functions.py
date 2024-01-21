@@ -80,7 +80,7 @@ join ship_frame_links sfl on sfl.ship_symbol = s.ship_symbol
 where waypoint_symbol = %s
 """
     results = try_execute_select(
-        client.connection, ships_at_waypoint_sql, (waypoint.symbol,)
+        ships_at_waypoint_sql, (waypoint.symbol,), client.connection
     )
     return_obj["present_ships"] = []
     for result in results:
@@ -97,6 +97,11 @@ where waypoint_symbol = %s
     return return_obj
 
 
+def display_ship_controls(client, string):
+    return {}
+    pass
+
+
 def query_galaxy(client: SpaceTraders):
     min_x = 0
     min_y = 0
@@ -111,7 +116,7 @@ group by w.waypoint_symbol, s.system_symbol, s.sector_symbol, s.type, s.x, s.y
 ;
 
         """
-    results = try_execute_select(client.connection, sql, ())
+    results = try_execute_select(sql, (), client.connection)
     systems = [
         {
             "system_symbol": r[0],
@@ -128,7 +133,7 @@ from jumpgate_connections jc
 join systems s on jc.s_system_symbol = s.system_symbol
 join systems d on jc.d_system_symbol = d.system_symbol
     """
-    results = try_execute_select(client.connection, sql, ())
+    results = try_execute_select(sql, (), client.connection)
     connections = [
         {
             "s_system_symbol": r[0],
@@ -182,7 +187,7 @@ def query_imports_in_system(client: SpaceTraders, system_symbol: str):
     , units_sold_recently
     from public.import_overview
     where system_symbol = %s"""
-    results = try_execute_select(client.connection, sql, (system_symbol,))
+    results = try_execute_select(sql, (system_symbol,), client.connection)
     imports = {}
     for i in results:
         im = Import(i[0], i[1], i[2], i[3], i[4], i[5], i[6], i[7], i[8])
@@ -210,11 +215,11 @@ def query_exports_in_system(client: SpaceTraders, system_symbol: str):
 	FROM public.export_overview
     where system_symbol = %s"""
 
-    e_results = try_execute_select(client.connection, e_sql, (system_symbol,))
+    e_results = try_execute_select(e_sql, (system_symbol,), client.connection)
     i_sql = """SELECT system_symbol, market_symbol, trade_symbol, supply, activity, purchase_price, sell_price, market_depth, units_sold_recently
 	FROM public.import_overview
 	where system_symbol = %s """
-    i_results = try_execute_select(client.connection, i_sql, (system_symbol,))
+    i_results = try_execute_select(i_sql, (system_symbol,), client.connection)
     i_markets = {}
     for i in i_results:
         im = Import(i[0], i[1], i[2], i[3], i[4], i[5], i[6], i[7], i[8])
@@ -396,7 +401,7 @@ order by event_timestamp desc
 limit 1
 """
     results = try_execute_select(
-        client.connection, recent_behaviour_sql, (ship_symbol,)
+        recent_behaviour_sql, (ship_symbol,), client.connection
     )
     if len(results) > 0:
         result = results[0]
@@ -410,9 +415,9 @@ limit 1
     union
     select behaviour_id, 99, behaviour_params from ship_behaviours where ship_symbol = %s"""
     results = try_execute_select(
-        client.connection,
         incomplete_tasks_and_behaviours_sql,
         (ship_symbol, ship_symbol),
+        client.connection,
     )
     if len(results) > 0 and results[0][0] is not None:
         return_obj["incomplete_tasks_and_behaviours"] = results
@@ -432,7 +437,7 @@ where mss.agent_name = %s
 order by w.system_symbol = mss.system_Symbol desc, mss.system_Symbol
 """
 
-    results = try_execute_select(st.connection, sql, (st.current_agent_symbol,))
+    results = try_execute_select(sql, (st.current_agent_symbol,), st.connection)
     systems = []
     for result in results:
         systems.append(
@@ -497,7 +502,7 @@ def query_system(st: SpaceTraders, system_symbol: str):
     and system_symbol = %s"""
     system = {}
     results = try_execute_select(
-        st.connection, sql, (st.current_agent_symbol, syst.symbol)
+        sql, (st.current_agent_symbol, syst.symbol), st.connection
     )
     if results and len(results) > 0:
         result = results[0]
@@ -536,17 +541,17 @@ def refresh_system_summary(connection):
 
 def _refresh_system_summary(connection):
     sql = """refresh materialized view mat_system_summary;"""
-    try_execute_upsert(connection, sql, ())
+    try_execute_upsert(sql, (), connection)
 
 
-def query_session(st: SpaceTraders, session_id):
+def query_session(client: SpaceTraders, session_id):
     sql = """
 select * from logging where session_id = %s
 order by event_name = 'BEGIN_BEHAVIOUR_SCRIPT', event_Timestamp desc  
 limit 100;
 """
     session_id = session_id[5:]
-    results = try_execute_select(st.connection, sql, (session_id,))
+    results = try_execute_select(sql, (session_id,), client.connection)
     response = []
     header = _try_parse_begin_behaviour_script(results[-1][3], results[-1][9])
     for log in results:
@@ -694,19 +699,23 @@ def _try_parse_begin_behaviour_script(ship_name, event_params: dict):
     return response_lines
 
 
-def query_all_transactions(st: SpaceTraders):
+def query_all_transactions(client: SpaceTraders):
     sql = """
 SELECT last_transaction_in_session, ship_symbol, trade_symbol, units_sold, average_sell_price, average_purchase_price, net_change, purchase_wp, sell_wp, session_id, units_purchased
 	FROM public.transaction_overview
     where ship_symbol ilike %s
     """
-    results = try_execute_select(st.connection, sql, (f"{st.current_agent_symbol}%",))
-    params = _process_transactions(st, results)
-    params["page_title"] = f"{st.current_agent_symbol} - All Transactions, All Systems"
+    results = try_execute_select(
+        sql, (f"{client.current_agent_symbol}%",), client.connection
+    )
+    params = _process_transactions(client, results)
+    params[
+        "page_title"
+    ] = f"{client.current_agent_symbol} - All Transactions, All Systems"
     return params
 
 
-def query_system_transactions(st: SpaceTraders, system_symbol: str):
+def query_system_transactions(client: SpaceTraders, system_symbol: str):
     sql = """
 SELECT last_transaction_in_session, ship_symbol, trade_symbol, units_sold, average_sell_price, average_purchase_price, net_change, purchase_wp, sell_wp, session_id, units_purchased
 	FROM public.transaction_overview
@@ -714,11 +723,11 @@ SELECT last_transaction_in_session, ship_symbol, trade_symbol, units_sold, avera
     and purchase_wp ilike %s or sell_wp ilike %s
     """
     results = try_execute_select(
-        st.connection,
         sql,
-        (f"{st.current_agent_symbol}%", f"{system_symbol}%", f"{system_symbol}%"),
+        (f"{client.current_agent_symbol}%", f"{system_symbol}%", f"{system_symbol}%"),
+        client.connection,
     )
-    params = _process_transactions(st, results)
+    params = _process_transactions(client, results)
     params["page_title"] = f"Transactions {system_symbol}"
     return params
 
@@ -757,7 +766,7 @@ def _process_transactions(self, results: list):
     return {"transactions": transactions}
 
 
-def query_all_ships(st: SpaceTraders):
+def query_all_ships(client: SpaceTraders):
     # we need a ship's name, fuel, cargo, location / nav details, and behaviour. let's block em into rectangles. maybe 5 in a large?
     sql = """with data as (
 select ship_symbol, max(event_timestamp) as timestamp
@@ -768,10 +777,10 @@ group by 1
 )
 select l.ship_symbol, event_params ->> 'script_name' as script_name from logging l join data d on l.event_timestamp = d.timestamp and d.ship_symbol = l.ship_symbol
 order by 1 """
-    results = try_execute_select(st.connection, sql, ())
+    results = try_execute_select(sql, (), client.connection)
     behaviours = {r[0]: r[1] for r in results}
-    all_ships = st.ships_view().values()
-    sorted_ships = _process_some_ships(st, all_ships, behaviours)
+    all_ships = client.ships_view().values()
+    sorted_ships = _process_some_ships(client, all_ships, behaviours)
     return {
         "ships": sorted_ships,
         "total_ships": len(all_ships),
@@ -849,7 +858,7 @@ def _process_some_ships(st: SpaceTraders, all_ships: list[Ship], behaviours: dic
     return sorted_ships
 
 
-def query_system_ships(st: SpaceTraders, system_symbol):
+def query_system_ships(client: SpaceTraders, system_symbol):
     sql = """with data as (
 select ship_symbol, max(event_timestamp) as timestamp
 from logging l 
@@ -859,19 +868,19 @@ group by 1
 )
 select l.ship_symbol, event_params ->> 'script_name' as script_name from logging l join data d on l.event_timestamp = d.timestamp and d.ship_symbol = l.ship_symbol
 order by 1 """
-    results = try_execute_select(st.connection, sql, ())
+    results = try_execute_select(sql, (), client.connection)
     behaviours = {r[0]: r[1] for r in results}
     all_ships = [
-        s for s in st.ships_view().values() if s.nav.system_symbol == system_symbol
+        s for s in client.ships_view().values() if s.nav.system_symbol == system_symbol
     ]
     return {
-        "ships": _process_some_ships(st, all_ships, behaviours),
+        "ships": _process_some_ships(client, all_ships, behaviours),
         "total_ships": len(all_ships),
         "page_title": f"All ships in {system_symbol}",
     }
 
 
-def query_one_type_of_ships(st: SpaceTraders, role: str):
+def query_one_type_of_ships(client: SpaceTraders, role: str):
     sql = """with data as (
 select ship_symbol, max(event_timestamp) as timestamp
 from logging l 
@@ -881,9 +890,9 @@ group by 1
 )
 select l.ship_symbol, event_params ->> 'script_name' as script_name from logging l join data d on l.event_timestamp = d.timestamp and d.ship_symbol = l.ship_symbol
 order by 1 """
-    results = try_execute_select(st.connection, sql, ())
+    results = try_execute_select(sql, (), client.connection)
     behaviours = {r[0]: r[1] for r in results}
-    all_ships = st.ships_view().values()
+    all_ships = client.ships_view().values()
     if role in ["EXTRACTOR", "SIPHONER"]:
         all_ships = [s for s in all_ships if s.role == "EXCAVATOR"]
         if role == "EXTRACTOR":
@@ -893,7 +902,7 @@ order by 1 """
     else:
         all_ships = [s for s in all_ships if s.role == role]
 
-    sorted_ships = _process_some_ships(st, all_ships, behaviours)
+    sorted_ships = _process_some_ships(client, all_ships, behaviours)
     return {
         "ships": sorted_ships,
         "total_ships": len(all_ships),

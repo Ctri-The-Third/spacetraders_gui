@@ -101,7 +101,12 @@ def query_params(st: SpaceTraders, string):
         params["_template"] = "all_transactions.html"
         params["_query"] = string
         return params
-
+    # if string begins "CONTROL-"
+    elif string[0:8] == "CONTROL-":
+        params = qf.display_ship_controls(st, string[8:])
+        params["_template"] = "ship_controls.html"
+        params["_query"] = string
+        return params
     elif string[0:5] == "SESH-":
         params = qf.query_session(st, string)
         params["_template"] = "session_summary.html"

@@ -1,0 +1,217 @@
+<div class="container">
+    <!-- First row -->
+    <div class="row">
+        <!-- Column 1 of row 1 -->
+
+        <div class="col-md-6 tall-square">
+            <div class=" ship-box container ">
+                <div class="row">
+                    <p>
+                    <h3><a href="/large_window/{{_query}}"
+                            onclick="fetch_block('{{_query}}','mainPanel'); return false;">CTRI-U--1</a>
+                        {% if _template and _query %}<a href='#'
+                            onclick="window.open('/large_window/{{_query}}','{{_query}}','menubar=no,toolbar=no')">[↗️]</a>
+                    </h3>
+                    </p>{%
+                    endif %}
+                </div>
+                <div class="row pt-2 " style="font-size:13px;">
+                    <div class="col-md-3 p-0">
+
+
+                        <a href="/small_window/CTRI-U--1/"
+                            onclick="fetch_block('CTRI-U--1','object_summary'); return false;">
+                            👑Command<br /> 🚤Frigate
+
+                        </a>
+                    </div>
+                    <div class="col-md-3 p-1 pt-0 pb-0">
+
+                        <a href="/small_window/X1-T14"
+                            onclick="fetch_block('X1-T14', 'mainPanel'); return false ;">🌌X1-T14</a>
+
+                    </div>
+                    <div class="col-md-2 p-0">
+
+                        <a href="/small_window/X1-T14-A4"
+                            onclick="fetch_block('X1-T14-A4', 'object_summary'); return false;">🌍A4</a>
+                    </div>
+                    <div class="col-md-2 p-1 pt-0 pb-0">
+                        📦0/40
+                    </div>
+                    <div class="col-md-2 p-0">
+                        123/400⛽
+                    </div>
+
+
+                </div>
+            </div>
+            <br />
+            <div class="container">
+                <div class="row text-center" style="font-size:13px; border-bottom:2px solid green;"> <b>Cargo and
+                        relevant waypoints </b></div>
+                <div class="row">
+                    <div class="col-sm-6">
+                        <img src="/icons/GOOD_CLOTHING.png" style="width:25px; height:25px;" /> - CLOTHING (30)
+                    </div>
+                    <div class="col-sm-3">
+                        average export buy price 50
+                    </div>
+
+                    <div class="col-sm-3">
+                        average import sell price 100
+                    </div>
+
+
+                </div>
+
+                <div class="row mt-2" style="border-top:1px solid green;">
+                    <div class="col-sm-6">
+                        <img src="/icons/GOOD_CLOTHING.png" />
+                    </div>
+                    <div class="col-sm-3">
+                        buy
+                    </div>
+                    <div class="col-sm-3">
+                        sell
+                    </div>
+                </div>
+                <div class="row" style="border-top:1px solid green;">
+                    <div class="col-sm-4">
+                        X15
+                    </div>
+                    <div class="col-sm-2">
+                        <img src="/icons/IMPORT.png" />
+                        <img src="/icons/MODERATE.png" />
+                    </div>
+                    <div class="col-sm-3">
+                        10.0
+                    </div>
+                    <div class="col-sm-3">
+                        10.0
+                    </div>
+                </div>
+                <div class="row" style="border-top:1px solid green;">
+                    <div class="col-sm-4">
+                        A4
+                    </div>
+                    <div class="col-sm-2">
+                        <img src="/icons/EXPORT.png" />
+                        <img src="/icons/ABUNDANT.png" />
+                    </div>
+                    <div class="col-sm-3">
+                        20.0
+                    </div>
+                    <div class="col-sm-3">
+                        53.0
+                    </div>
+                </div>
+
+
+            </div>
+            <div class="container mt-2">
+                <div class="row text-center" style="font-size:13px; border-bottom:2px solid green;"> <b>Recent logs </b>
+                </div>
+                <div class="row">
+                    <div class="col-sm-2">
+                        ship_move
+                    </div>
+                    <div class="col-sm-10 text-end">
+                        {
+                        "dest_waypoint_symbol": "X1-TN14-I60"
+                        }
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-2">
+                        ship_move
+                    </div>
+                    <div class="col-sm-10 text-end">
+                        {
+                        "dest_waypoint_symbol": "X1-TN14-I59"
+                        }
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12">
+                        ship_orbit
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-2">
+                        ship_refuel
+                    </div>
+                    <div class="col-sm-2">
+                        4601
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12">
+                        ship_dock
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-2">
+                        ship_move
+                    </div>
+                    <div class="col-sm-10 text-end">
+                        {
+                        "dest_waypoint_symbol": "X1-TN14-J61"
+                        }
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="container mt-2">
+                <div class="row text-center" style="font-size:13px; border-bottom:2px solid green;"> <b>Recent sessions
+                    </b></div>
+                <div class="row">
+                    <div class="col-sm-3">CONSTRUCT_JUMPGATE</div>
+                    <div class="col-sm-1">-108215</div>
+                    <div class="col-sm-8 text-end">waypoint: X1-TN14-J62</div>
+
+                </div>
+                <div class="row">
+                    <div class="col-sm-3">EXTRACT_AND_GO_SELL</div>
+                    <div class="col-sm-1">5215</div>
+                    <div class="col-sm-8 text-end">market_wp: X1-TN14-C41<br />asteroid_wp: X1-TN14-C40</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 tall-square" style="background:red;">
+            <!-- Column 2-->
+            <div class="row text-center" style="font-size:13px; border-bottom:2px solid green;"> <b> dispatcher details
+                </b>
+            </div>
+            <div class="row">
+                <div class="col-md-6">process name: mercury sun</div>
+                <div class="col-md-6">lock expiration: 2024-01-21 12:49 UTC</div>
+            </div>
+            <div class="row">
+                here go the local commands ()
+            </div>
+            <!-- Column 2 of row 2 -->
+            <div class="row">
+                here go the tac
+                <div class="small-square">Column 2 - Row 2</div>
+            </div>
+        </div>
+    </div>
+    <!-- Second row -->
+
+</div>
+
+
+[
+current logs
+recent sessions for pop up.
+]
+
+<hr />
+panel for setting a behaviour.
+
+<br />
+if there's cargo, then we need convenient shotcuts - places to sell the cargo
+
+If there's not then we need shortcuts about where to go next
