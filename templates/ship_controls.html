@@ -8,7 +8,7 @@
                 <div class="row">
                     <p>
                     <h3><a href="/large_window/{{_query}}"
-                            onclick="fetch_block('{{_query}}','mainPanel'); return false;">CTRI-U--1</a>
+                            onclick="fetch_block('{{_query}}','mainPanel'); return false;">{{ship_symbol}}</a>
                         {% if _template and _query %}<a href='#'
                             onclick="window.open('/large_window/{{_query}}','{{_query}}','menubar=no,toolbar=no')">[↗️]</a>
                     </h3>
@@ -19,104 +19,131 @@
                     <div class="col-md-3 p-0">
 
 
-                        <a href="/small_window/CTRI-U--1/"
-                            onclick="fetch_block('CTRI-U--1','object_summary'); return false;">
-                            👑Command<br /> 🚤Frigate
+                        <a href="/small_window/{{ship_symbol}}/"
+                            onclick="fetch_block('{{ship_symbol}}','object_summary'); return false;">
+                            {{ship_role}}{{ship_role_text}}<br /> {{ship_frame}}{{ship_frame_text}}
 
                         </a>
                     </div>
                     <div class="col-md-3 p-1 pt-0 pb-0">
 
-                        <a href="/small_window/X1-T14"
-                            onclick="fetch_block('X1-T14', 'mainPanel'); return false ;">🌌X1-T14</a>
+                        <a href="/small_window/{{current_system}}"
+                            onclick="fetch_block('{{current_system}}', 'mainPanel'); return false ;">🌌{{current_system}}</a>
 
                     </div>
                     <div class="col-md-2 p-0">
 
-                        <a href="/small_window/X1-T14-A4"
-                            onclick="fetch_block('X1-T14-A4', 'object_summary'); return false;">🌍A4</a>
+                        <a href="/small_window/{{current_waypoint}}"
+                            onclick="fetch_block('{{current_waypoint}}', 'object_summary'); return false;">🌍{{current_waypoint_suffix}}</a>
                     </div>
                     <div class="col-md-2 p-1 pt-0 pb-0">
-                        📦0/40
+                        📦{{cur_cargo}}/{{max_cargo}} cargo
                     </div>
                     <div class="col-md-2 p-0">
-                        123/400⛽
+                        {{cur_fuel}}/{{max_fuel}}⛽
                     </div>
 
 
                 </div>
             </div>
-            <br />
+            {% if travel_time > 0 or cooldown_time > 0 %}
+            <div class="row mt-2 mb-1">
+                <div class="col-md-6">
+                    travel remaining: <span class="tickingTimer">{{travel_time}}s ({{travel_time_fmt}})</span>
+                    <br />
+                    {% if origin_suffix %}
+                    [<a href="#"
+                        onClick="fetch_block('{{origin}}','object_detail');  return false;">{{origin_suffix}}</a>]
+                    ->
+                    [<a href="#"
+                        onClick="fetch_block('{{destination}}','object_detail');  return false;">{{destination_suffix}}</a>]
+                    {{distance}}km <br />{% endif %}
+
+                </div>
+                <div class="col-md-6 text-end">
+                    cooldown remaining: <span class="tickingTimer">{{cooldown_time}}s ({{cooldown_time_fmt}})</span>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if cargo %}
+
             <div class="container">
-                <div class="row text-center" style="font-size:13px; border-bottom:2px solid green;"> <b>Cargo and
+                <div class="row text-center section-title"> <b>Cargo and
                         relevant waypoints </b></div>
-                <div class="row">
+                {% for c in cargo %}
+
+                <div class="row" style="border-top:2px solid green">
                     <div class="col-sm-6">
-                        <img src="/icons/GOOD_CLOTHING.png" style="width:25px; height:25px;" /> - CLOTHING (30)
+                        <img src="/icons/GOOD_{{c}}.png" style="width:25px; height:25px;" /> - {{c}} ({{cargo[c]}})
                     </div>
                     <div class="col-sm-3">
-                        average export buy price 50
+                        avg buy: {{tradegood_prices[c].export_price}}
                     </div>
 
                     <div class="col-sm-3">
-                        average import sell price 100
+                        avg sell: {{tradegood_prices[c].import_price}}
                     </div>
 
 
                 </div>
 
                 <div class="row mt-2" style="border-top:1px solid green;">
-                    <div class="col-sm-6">
-                        <img src="/icons/GOOD_CLOTHING.png" />
+                    <div class="col-sm-3">
+                        <img src="/icons/GOOD_{{c}}.png" /> {{c}}
                     </div>
                     <div class="col-sm-3">
+                    </div>
+                    <div class="col-sm-2">
+                        t vol
+                    </div>
+                    <div class="col-sm-2">
                         buy
                     </div>
-                    <div class="col-sm-3">
+                    <div class="col-sm-2">
                         sell
                     </div>
                 </div>
+                {% for m in market_data[c] %}
                 <div class="row" style="border-top:1px solid green;">
-                    <div class="col-sm-4">
-                        X15
+                    <div class="col-sm-3">
+                        <a href="/small_window/{{m.market_symbol}}"
+                            onclick="fetch_block('{{m.market_symbol}}','object_summary'); return false;">{{m.market_symbol}}</a>
+                    </div>
+                    <div class="col-sm-3">
+                        <img src="/icons/{{m.type}}.png" />
+                        <img src="/icons/{{m.supply}}.png" />
+                        {% if m.activity is not none and m.activity != "" %}<img src="/icons/{{m.activity}}.png" />{%
+                        endif %}
                     </div>
                     <div class="col-sm-2">
-                        <img src="/icons/IMPORT.png" />
-                        <img src="/icons/MODERATE.png" />
-                    </div>
-                    <div class="col-sm-3">
-                        10.0
-                    </div>
-                    <div class="col-sm-3">
-                        10.0
-                    </div>
-                </div>
-                <div class="row" style="border-top:1px solid green;">
-                    <div class="col-sm-4">
-                        A4
+                        {{m.market_depth}}
                     </div>
                     <div class="col-sm-2">
-                        <img src="/icons/EXPORT.png" />
-                        <img src="/icons/ABUNDANT.png" />
+                        {{m.purchase_price}}
                     </div>
-                    <div class="col-sm-3">
-                        20.0
+                    <div class="col-sm-2">
+                        {{m.sell_price}}
                     </div>
-                    <div class="col-sm-3">
-                        53.0
-                    </div>
+
                 </div>
+                {% endfor %}
 
 
+                {% endfor %}
             </div>
+            {% endif %}
+
+
             <div class="container mt-2">
-                <div class="row text-center" style="font-size:13px; border-bottom:2px solid green;"> <b>Recent logs </b>
+                <div class="row text-center section-title">
+                    <b>Recent logs </b>
                 </div>
                 <div class="row">
-                    <div class="col-sm-2">
+                    <div class="col-sm-2 ">
                         ship_move
                     </div>
-                    <div class="col-sm-10 text-end">
+                    <div class="col-sm-10  text-end">
                         {
                         "dest_waypoint_symbol": "X1-TN14-I60"
                         }
@@ -154,7 +181,7 @@
                     <div class="col-sm-2">
                         ship_move
                     </div>
-                    <div class="col-sm-10 text-end">
+                    <div class="col-sm-10  text-end">
                         {
                         "dest_waypoint_symbol": "X1-TN14-J61"
                         }
@@ -164,54 +191,138 @@
 
 
             <div class="container mt-2">
-                <div class="row text-center" style="font-size:13px; border-bottom:2px solid green;"> <b>Recent sessions
-                    </b></div>
+                <div class="row text-center section-title">
+                    <b>Recent sessions
+                    </b>
+                </div>
                 <div class="row">
                     <div class="col-sm-3">CONSTRUCT_JUMPGATE</div>
-                    <div class="col-sm-1">-108215</div>
+                    <div class="col-sm-1 ml-2">-108215</div>
                     <div class="col-sm-8 text-end">waypoint: X1-TN14-J62</div>
 
                 </div>
                 <div class="row">
                     <div class="col-sm-3">EXTRACT_AND_GO_SELL</div>
-                    <div class="col-sm-1">5215</div>
+                    <div class="col-sm-1 ml-2">5215</div>
                     <div class="col-sm-8 text-end">market_wp: X1-TN14-C41<br />asteroid_wp: X1-TN14-C40</div>
                 </div>
             </div>
         </div>
-        <div class="col-md-6 tall-square" style="background:red;">
+        <div class="col-md-6 tall-square">
             <!-- Column 2-->
-            <div class="row text-center" style="font-size:13px; border-bottom:2px solid green;"> <b> dispatcher details
+            <div class=" row text-center section-title"> <b>
+                    Dispatcher details
                 </b>
             </div>
             <div class="row">
-                <div class="col-md-6">process name: mercury sun</div>
-                <div class="col-md-6">lock expiration: 2024-01-21 12:49 UTC</div>
+                <div class="col-md-6">process name:<br /> <b>mercury sun</b></div>
+                <div class="col-md-6 text-end">lock expiration:<br /> 2024-01-21 <b>12:49</b> UTC</div>
             </div>
             <div class="row">
-                here go the local commands ()
+                <div class="col-sm-4"><a href="#">reset lock 🔓</a></div>
+                <div class="col-sm-8 text-end">disable ship 🔒 for [<a href="#">1h</a>] [<a href="#">6h</a>] [<a
+                        href="#">24h</a>] [<a href="#">1yr</a>]
+                </div>
+
+
             </div>
-            <!-- Column 2 of row 2 -->
-            <div class="row">
-                here go the tac
-                <div class="small-square">Column 2 - Row 2</div>
+            <div>
+                <div class="row">
+                    <div class="col-sm-12 section-title text-center">Existing instructions</div>
+
+                </div>
+
+                <!-- Column 2 of row 2 -->
+                <div class="row">
+                    <div class="col-sm-1 fs-6">♾️</div>
+                    <div class="col-sm-11">TRADE_BEST_INTRASOLAR</div>
+                </div>
+
+                <div class="row">
+                    <div class="col-sm-1 fs-5">1</div>
+                    <div class="col-sm-4">EXPLORE_ONE_SYSTEM</div>
+                    <div class="col-sm-4">priority<br />target_sys</div>
+                    <div class="col-sm-3">3<br />X1-TN14</div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-1 fs-5">5</div>
+                    <div class="col-sm-11">SELL_OR_JETTISON_ALL_CARGO</div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-1">✅</div>
+                    <div class="col-sm-11">SELL_OR_JETTISON_ALL_CARGO</div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-1">✅</div>
+                    <div class="col-sm-11">EXPLORE_ONE_SYSTEM</div>
+                </div>
+
+                <div class="row">
+                    <div class="col-sm-1">✅</div>
+                    <div class="col-sm-11">EXPLORE_ONE_SYSTEM</div>
+                </div>
             </div>
+            <div>
+                <div class="row mt-2">
+                    <div class="col-sm-12 section-title text-center ">give instructions to {{ship_symbol}}</div>
+                </div>
+                <form style="font-size:12pt;">
+                    <div class="row">
+                        <div class="col-sm-8">
+                            <div class="form-floating">
+                                <select class="form-select-sm" id="behaviour_id" style="width:100%;">
+                                    <option selected> Select behaviour_id </option>
+                                    <option value="1">EXPLORE_ONE_SYSTEM</option>
+                                    <option value="2">EXTRACT_AND_GO_SELL</option>
+                                    <option value="3">CHAIN_TRADES</option>
+                                    <option value="4">CONSTRUCT_JUMPGATE</option>
+                                    <option> --- </option>
+                                    <option value="5">TRADE_BEST_INTRASOLAR</option>
+                                    <option value="6">TRADE_BEST_INTERSOLAR</option>
+                                    <option value="7">TRADE_BEST_INTERSOLAR</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-4">
+
+                            <div class="form-check">
+
+                                <input class="form-check-input " type="checkbox" value="" id="behaviourOrTask" checked>
+                                <label class="form-check-label" for="behaviourOrTask"> One-off?</label>
+                            </div>
+
+                        </div>
+                    </div>
+                    <div class="row mt-1">
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                <input id="waypoint" class="form-control  bg-dark text-success"
+                                    placeholder="X1-T14-A4" />
+                                <label for="waypoint" class=" text-success"> Waypoint</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                <input id="waypoint" class="form-control  bg-dark text-success"
+                                    placeholder="X1-T14-A4" />
+                                <label for="market_wp" class=" text-success">Waypoint</label>
+                            </div>
+
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-12 mt-2 mb-2 text-center">
+                                <button type="submit" class="btn btn-success" disabled>Submit
+                                    instruction</button>
+                            </div>
+                        </div>
+
+                </form>
+            </div>
+
         </div>
     </div>
-    <!-- Second row -->
+</div>
+<!-- Second row -->
 
 </div>
-
-
-[
-current logs
-recent sessions for pop up.
-]
-
-<hr />
-panel for setting a behaviour.
-
-<br />
-if there's cargo, then we need convenient shotcuts - places to sell the cargo
-
-If there's not then we need shortcuts about where to go next

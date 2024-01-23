@@ -98,8 +98,53 @@ where waypoint_symbol = %s
 
 
 def display_ship_controls(client, string):
-    return {}
-    pass
+    return_obj = query_ship(client, string)
+    ship = client.ships_view_one(string)
+    ship: Ship
+
+    price_sql = """
+select mp.trade_symbol, export_price, import_price from ship_cargo sc join market_prices mp on sc.trade_symbol = mp.trade_symbol
+where ship_symbol = %s"""
+
+    results = try_execute_select(price_sql, (ship.name,), client.connection)
+    return_obj["tradegood_prices"] = {
+        r[0]: {"export_price": int(r[1] or -1), "import_price": int(r[2] or -1)}
+        for r in results
+    } or {}
+    return_obj["market_data"] = {}
+    market_data_sql = """
+select "market_symbol",	mtl."trade_symbol",	"supply",	"purchase_price",	"sell_price",	"last_updated",	"market_depth",	mtl."type",	"activity"
+from market_tradegood_listings mtl 
+join waypoints w on mtl.market_Symbol = w.waypoint_symbol
+join ship_cargo sc on sc.trade_symbol = mtl.trade_symbol
+where sc.ship_symbol = %s and w.system_symbol = %s
+order by type, market_symbol """
+
+    market_data = try_execute_select(
+        market_data_sql, (ship.name, ship.nav.system_symbol), client.connection
+    )
+
+    for m in market_data:
+        if m[1] not in return_obj["market_data"]:
+            return_obj["market_data"][m[1]] = []
+        market_data = {
+            "market_symbol": m[0],
+            "supply": m[2],
+            "last_updated": m[5],
+            "market_depth": m[6],
+            "type": m[7],
+        }
+        if m[7] in ("EXPORT", "EXCHANGE"):
+            market_data["purchase_price"] = m[3]
+        if m[7] in ("IMPORT", "EXCHANGE"):
+            market_data["sell_price"] = m[4]
+        if m[7] != "EXCHANGE":
+            market_data["activity"] = m[8]
+        else:
+            market_data["activity"] = "UNKNOWN"
+        return_obj["market_data"][m[1]].append(market_data)
+
+    return return_obj
 
 
 def query_galaxy(client: SpaceTraders):
