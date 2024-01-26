@@ -12,6 +12,7 @@ Note. that this project is not yet complete and an instructional overhaul for ea
 - [Overview](#Overview)
 - [Environment setup](#Setup)
 - [Deployment](#Deploy)
+- [Features](#Features)
 
 
 # Overview
@@ -19,23 +20,6 @@ Note. that this project is not yet complete and an instructional overhaul for ea
 This UI is predominantly for monitoring the status of a player's fleet, as well as surfacing information from the various waypoints (such as planets, asteroids, space stations etc...) you can visit in game.
 
 By sharing a common database with my back end client (see [spacetraders]() repo) it is able to display information in a more helpful and meaningful way than the raw JSON data returned by the API, or just rows in a database.
-
-## Features
-
-- Visually display a system of waypoints 
-  ![readme/system.png](readme/system.png)
-
-- Click to display more information without leaving the page
-  ![readme/system_with_waypoint.png](readme/system_with_waypoint.PNG)
-
-- inspect all ships in your fleet (or in a given system)
-  ![readme/ship_overview.PNG](readme/ship_overview.PNG)
-
-- View the trading history of your ships
-  ![readme/transaction_overview.PNG](readme/transaction_overview.PNG)
-
-- and view historic changes in given goods in a visually meaningful medium
-  ![readme/export_graph.png](readme/export_graph.png)
 
 ## Setup
 The easiest way to run this is using the container here [ctriatanitan/spacetraders_ui](https://hub.docker.com/repository/docker/ctriatanitan/spacetraders_ui/general).
@@ -55,3 +39,20 @@ However, if you want to run it locally, you can do so by following these steps:
 * install the requirements.txt file
 * run main.py
 * connect to localhost:3000
+
+## Features
+
+- Visually display a system of waypoints 
+  ![readme/system.png](readme/system.png)
+
+- Click to display more information without leaving the page
+  ![readme/system_with_waypoint.png](readme/system_with_waypoint.PNG)
+
+- inspect all ships in your fleet (or in a given system)
+  ![readme/ship_overview.PNG](readme/ship_overview.PNG)
+
+- View the trading history of your ships
+  ![readme/transaction_overview.PNG](readme/transaction_overview.PNG)
+
+- and view historic changes in given goods in a visually meaningful medium
+  ![readme/export_graph.png](readme/export_graph.png)
