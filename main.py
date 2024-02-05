@@ -13,7 +13,7 @@ from flask import Flask, render_template, request, send_from_directory
 from datetime import datetime, timedelta
 
 import query_functions as qf
-
+import behaviour_functions as bf
 import static.scripts.load_graphs as lg
 import os
 
@@ -175,10 +175,41 @@ def query_market_tradegood(tg_sym, mkt_sym):
     # if it matches a ship - go get the ship summary
 
 
+@app.route("/behaviour/submit/<ship_symbol>/<behaviour_id>", methods=["POST"])
+def log_task_for_ship(ship_symbol, behaviour_id):
+
+    st = setup_st(request)
+    if not st:
+        return "no token"
+    params = dict(request.get_json())
+    for param, value in params.items():
+        try:
+            params[param] = float(value)
+        except:
+            pass
+
+    if ship_symbol == "undefined" or behaviour_id == "undefined":
+        return "No ship or behaviour specified"
+    if len(params) == 0:
+        return "No parameters supplied"
+    bf.log_task(
+        st.connection,
+        behaviour_id,
+        [],
+        None,
+        agent_symbol=st.current_agent_symbol,
+        specific_ship_symbol=ship_symbol,
+        behaviour_params=dict(params),
+        expiry=datetime.now() + timedelta(hours=1),
+    )
+    return "Task logged!"
+
+
 # I wa
 @app.route("/graph_window/query/tradegood/<mkt_sym>/<tg_sym>")
 def graph_window_query_market_tradegood(mkt_sym, tg_sym):
     st = setup_st(request)
+
     params = {
         "_graph": lg.json_into_html(lg.market_listing_over_time(st, tg_sym, mkt_sym))
     }
@@ -217,7 +248,13 @@ def graph_window_graph_content():
 
 def setup_st(request) -> SpaceTraders:
     # Split the JWT into its three components
-    token = request.cookies.get("sTradersToken")
+    token = request.headers.get("Authorization")
+    if token and "Bearer " in token and token != "Bearer null":
+        token = token[7:]
+
+    elif "sTradersToken" in request.cookies:
+        token = request.cookies.get("sTradersToken")
+
     if not token:
         return None
     # take the "Bearer " off the front

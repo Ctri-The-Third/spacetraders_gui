@@ -1,6 +1,6 @@
 // Function to call when divs with 'tickingTimer' class are added to the DOM
 function onTimerDivAdded(addedNodes) {
-    console.log("Got this far")
+    //console.log("Got this far")
     addedNodes.forEach(node => {
         if (node.nodeType === Node.ELEMENT_NODE && node.classList.contains('tickingTimer')) {
             console.log("New tickingTimer added: ", node);
@@ -15,7 +15,7 @@ var elements_to_update = []
 // Suppose this function initializes your timer
 function initializeTimer(element) {
     // Your logic to initialize the timer, e.g., attaching events or setting up data
-    console.log("Initializing timer for element", element);
+    //console.log("Initializing timer for element", element);
     elements_to_update.push(element)
 
 }
@@ -35,7 +35,7 @@ function updateTimers() {
 
         if (matches) {
             let [, totalSeconds, hours, minutes, seconds] = matches.map(Number);
-            console.log("matched total seconds [", totalSeconds, " ]");
+            //console.log("matched total seconds [", totalSeconds, " ]");
 
             if (totalSeconds > 0) {
                 totalSeconds -= 1; // Decrease by one second
@@ -54,7 +54,7 @@ function updateTimers() {
                 // use regex to extract the seconds
                 // then use JS to split it back out into SSs (HHh MMm SSs)
 
-                console.log("Timer updated for element", element, element.innerHTML);
+                //console.log("Timer updated for element", element, element.innerHTML);
             };
         }
     });
@@ -74,7 +74,7 @@ const callback = function (mutationsList) {
     for (const mutation of mutationsList) {
         if (mutation.type === 'childList') {
             // Check added nodes
-            console.log("Mutation observed: ", mutation.addedNodes)
+            //console.log("Mutation observed: ", mutation.addedNodes)
             onTimerDivAdded(mutation.addedNodes);
         }
     }

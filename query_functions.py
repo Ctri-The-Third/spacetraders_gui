@@ -102,6 +102,9 @@ def display_ship_controls(client, string):
     ship = client.ships_view_one(string)
     ship: Ship
 
+    #
+    # prices for cargo in the ship
+    #
     price_sql = """
 select mp.trade_symbol, export_price, import_price from ship_cargo sc join market_prices mp on sc.trade_symbol = mp.trade_symbol
 where ship_symbol = %s"""
@@ -144,6 +147,52 @@ order by type, market_symbol """
             market_data["activity"] = "UNKNOWN"
         return_obj["market_data"][m[1]].append(market_data)
 
+    #
+    # behaviour stuff
+    #
+
+    behaviour_ids = """select behaviour_id, description, default_params from behaviour_Definitions order by 1 """
+    results = try_execute_select(behaviour_ids, (), client.connection)
+    return_obj["behaviour_ids"] = [
+        {"id": r[0], "params": json.dumps(r[2])} for r in results
+    ]
+
+    #
+    # logs
+    #
+
+    sql = """select session_id, event_timestamp, event_name, error_code, event_params from logging 
+
+where ship_symbol = %s
+order by event_timestamp desc 
+limit 7"""
+    results = try_execute_select(sql, (ship.name,), client.connection)
+    return_obj["logs"] = [
+        {"event_name": r[2], "param_string": json.dumps(r[4]), "error_code": r[3]}
+        for r in results
+    ]
+
+    sql = """select session_id,  event_params from logging 
+
+where ship_symbol = %s
+and event_name = 'BEGIN_BEHAVIOUR_SCRIPT'
+order by event_timestamp desc 
+limit 4"""
+    results = try_execute_select(sql, (ship.name,), client.connection)
+    return_obj["sessions"] = []
+    for session in results:
+        if "script_name" not in session[1]:
+            continue
+        behaviour_id = session[1]["script_name"]
+        del session[1]["script_name"]
+        return_obj["sessions"].append(
+            {
+                "session_id": session[0],
+                "behaviour_id": behaviour_id,
+                "param_pairs": {k: v for k, v in session[1].items()},
+            }
+        )
+        return_obj["sessions"].reverse()
     return return_obj
 
 
@@ -409,9 +458,9 @@ def query_ship(client: SpaceTraders, ship_symbol: str):
     ]
     return_obj["travel_time"] = ship.nav.travel_time_remaining
     t = ship.nav.travel_time_remaining
-    return_obj[
-        "travel_time_fmt"
-    ] = f"{floor(t/3600)}h {floor((t%3600)/60)}m {floor(t%60)}s"
+    return_obj["travel_time_fmt"] = (
+        f"{floor(t/3600)}h {floor((t%3600)/60)}m {floor(t%60)}s"
+    )
     if ship.nav.status == "IN_TRANSIT":
         return_obj["origin"] = ship.nav.origin.symbol
         return_obj["origin_suffix"] = waypoint_suffix(ship.nav.origin.symbol)
@@ -422,9 +471,9 @@ def query_ship(client: SpaceTraders, ship_symbol: str):
         )
     return_obj["cooldown_time"] = ship.seconds_until_cooldown
     t = ship.seconds_until_cooldown
-    return_obj[
-        "cooldown_time_fmt"
-    ] = f"{floor(t/3600)}h {floor((t%3600)/60)}m {floor(t%60)}s"
+    return_obj["cooldown_time_fmt"] = (
+        f"{floor(t/3600)}h {floor((t%3600)/60)}m {floor(t%60)}s"
+    )
 
     cargo = {}
     for ci in ship.cargo_inventory:
@@ -754,9 +803,9 @@ SELECT last_transaction_in_session, ship_symbol, trade_symbol, units_sold, avera
         sql, (f"{client.current_agent_symbol}%",), client.connection
     )
     params = _process_transactions(client, results)
-    params[
-        "page_title"
-    ] = f"{client.current_agent_symbol} - All Transactions, All Systems"
+    params["page_title"] = (
+        f"{client.current_agent_symbol} - All Transactions, All Systems"
+    )
     return params
 
 

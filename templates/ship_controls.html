@@ -139,73 +139,62 @@
                 <div class="row text-center section-title">
                     <b>Recent logs </b>
                 </div>
+                {% for l in logs %}
                 <div class="row">
-                    <div class="col-sm-2 ">
-                        ship_move
-                    </div>
-                    <div class="col-sm-10  text-end">
-                        {
-                        "dest_waypoint_symbol": "X1-TN14-I60"
-                        }
-                    </div>
-                </div>
-                <div class="row">
+                    {% if l.error_code != 0 and l.event_params != "{}" %}
+
+
                     <div class="col-sm-2">
-                        ship_move
+                        {{l.event_name}}
+                    </div>
+                    <div class="col-sm-2">
+                        {{l.error_code}}
+                    </div>
+                    <div class="col-sm-8  text-end">
+                        {{l.param_string}}
+                    </div>
+                    {% elif l.error_code != 0 %}
+                    <div class="col-sm-2">
+                        {{l.event_name}}
+                    </div>
+                    <div class="col-sm-2">
+                        {{l.error_code}}
+                    </div>
+                    {% elif l.param_string != "{}" %}
+                    <div class="col-sm-2">
+                        {{l.event_name}}
                     </div>
                     <div class="col-sm-10 text-end">
-                        {
-                        "dest_waypoint_symbol": "X1-TN14-I59"
-                        }
+                        {{l.param_string}}
                     </div>
-                </div>
-                <div class="row">
+                    {% else %}
                     <div class="col-sm-12">
-                        ship_orbit
+                        {{l.event_name}}
                     </div>
+                    {% endif %}
                 </div>
-                <div class="row">
-                    <div class="col-sm-2">
-                        ship_refuel
-                    </div>
-                    <div class="col-sm-2">
-                        4601
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-sm-12">
-                        ship_dock
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-sm-2">
-                        ship_move
-                    </div>
-                    <div class="col-sm-10  text-end">
-                        {
-                        "dest_waypoint_symbol": "X1-TN14-J61"
-                        }
-                    </div>
-                </div>
+
+
+                {% endfor %}
             </div>
-
-
             <div class="container mt-2">
                 <div class="row text-center section-title">
                     <b>Recent sessions
                     </b>
                 </div>
+                {% for s in sessions %}
+
                 <div class="row">
-                    <div class="col-sm-3">CONSTRUCT_JUMPGATE</div>
-                    <div class="col-sm-1 ml-2">-108215</div>
-                    <div class="col-sm-8 text-end">waypoint: X1-TN14-J62</div>
+
+                    <div class="col-sm-4"><a href="/small_window/SESH-{{s.session_id}}"
+                            onClick="fetch_block('SESH-{{s.session_id}}','object_summary'); return false;">{{s.behaviour_id}}</a>
+                    </div>
+                    <div class="col-sm-8 text-end">{% for k in s.param_pairs %} {{k}}: {{s.param_pairs[k]}} <br /> {%
+                        endfor %}</div>
 
                 </div>
-                <div class="row">
-                    <div class="col-sm-3">EXTRACT_AND_GO_SELL</div>
-                    <div class="col-sm-1 ml-2">5215</div>
-                    <div class="col-sm-8 text-end">market_wp: X1-TN14-C41<br />asteroid_wp: X1-TN14-C40</div>
-                </div>
+                {% endfor %}
+
             </div>
         </div>
         <div class="col-md-6 tall-square">
@@ -266,20 +255,18 @@
                 <div class="row mt-2">
                     <div class="col-sm-12 section-title text-center ">give instructions to {{ship_symbol}}</div>
                 </div>
-                <form style="font-size:12pt;">
+                <form style="font-size:12pt;" id="behaviour_form">
+                    <input type="hidden" name="ship_symbol" value="{{ship_symbol}}" />
                     <div class="row">
                         <div class="col-sm-8">
                             <div class="form-floating">
-                                <select class="form-select-sm" id="behaviour_id" style="width:100%;">
+                                <select class="form-select-sm" name="behaviour_id" id="behaviour_id"
+                                    style="width:100%;">
+
                                     <option selected> Select behaviour_id </option>
-                                    <option value="1">EXPLORE_ONE_SYSTEM</option>
-                                    <option value="2">EXTRACT_AND_GO_SELL</option>
-                                    <option value="3">CHAIN_TRADES</option>
-                                    <option value="4">CONSTRUCT_JUMPGATE</option>
-                                    <option> --- </option>
-                                    <option value="5">TRADE_BEST_INTRASOLAR</option>
-                                    <option value="6">TRADE_BEST_INTERSOLAR</option>
-                                    <option value="7">TRADE_BEST_INTERSOLAR</option>
+                                    {% for b in behaviour_ids %}
+                                    <option value="{{b.id}}" params='{{b.params}}'>{{b.id}}</option>
+                                    {% endfor %}
                                 </select>
                             </div>
                         </div>
@@ -294,28 +281,15 @@
 
                         </div>
                     </div>
-                    <div class="row mt-1">
-                        <div class="col-md-6">
-                            <div class="form-floating">
-                                <input id="waypoint" class="form-control  bg-dark text-success"
-                                    placeholder="X1-T14-A4" />
-                                <label for="waypoint" class=" text-success"> Waypoint</label>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-floating">
-                                <input id="waypoint" class="form-control  bg-dark text-success"
-                                    placeholder="X1-T14-A4" />
-                                <label for="market_wp" class=" text-success">Waypoint</label>
-                            </div>
+                    <div class="row mt-1" id="behaviour_param_controls">
 
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-12 mt-2 mb-2 text-center">
+                            <button type="submit" class="btn btn-success" id="behaviour_submit_button">Submit
+                                instruction</button>
                         </div>
-                        <div class="row">
-                            <div class="col-sm-12 mt-2 mb-2 text-center">
-                                <button type="submit" class="btn btn-success" disabled>Submit
-                                    instruction</button>
-                            </div>
-                        </div>
+                    </div>
 
                 </form>
             </div>
