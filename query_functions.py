@@ -110,6 +110,10 @@ select mp.trade_symbol, export_price, import_price from ship_cargo sc join marke
 where ship_symbol = %s"""
 
     results = try_execute_select(price_sql, (ship.name,), client.connection)
+
+    #
+    # relevant tradegood stuff
+    #
     return_obj["tradegood_prices"] = {
         r[0]: {"export_price": int(r[1] or -1), "import_price": int(r[2] or -1)}
         for r in results
@@ -193,6 +197,18 @@ limit 4"""
             }
         )
         return_obj["sessions"].reverse()
+
+    #
+    # dispatcher info
+    #
+    sql = """select ship_symbol, behaviour_id, locked_by, locked_until, behaviour_params
+    where ship_symbol = %s """
+    results = try_execute_select(sql, (ship.name,), client.connection)
+    _, behaviour_id, locked_by, locked_until, behaviour_params = results[0]
+    return_obj["dispatcher_process"] = behaviour_id
+    return_obj["dispatcher_locked_by"] = locked_by
+    return_obj["dispatcher_locked_until"] = locked_until
+
     return return_obj
 
 
