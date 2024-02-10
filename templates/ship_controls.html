@@ -45,7 +45,7 @@
 
 
                 </div>
-            </div>
+            </div>s
             {% if travel_time > 0 or cooldown_time > 0 %}
             <div class="row mt-2 mb-1">
                 <div class="col-md-6">
@@ -205,8 +205,9 @@
                 </b>
             </div>
             <div class="row">
-                <div class="col-md-6">process name:<br /> <b>mercury sun</b></div>
-                <div class="col-md-6 text-end">lock expiration:<br /> 2024-01-21 <b>12:49</b> UTC</div>
+                <div class="col-md-6">process name:<br /> <b>{{dispatcher_locked_by}}</b></div>
+                <div class="col-md-6 text-end {{dispatcher_alarm}}">lock expiration:<br /> {{dispatcher_locked_until}}
+                    UTC</div>
             </div>
             <div class="row">
                 <div class="col-sm-4"><a href="#">reset lock 🔓</a></div>

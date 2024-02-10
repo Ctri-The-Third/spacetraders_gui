@@ -1,9 +1,8 @@
-
-document.addEventListener('DOMContentLoaded', function () {
+function initilaizeBehaviourIdAndSubmitButton() {
     var selectElement = document.getElementById('behaviour_id');
     selectElement.addEventListener('change', function () {
 
-
+        console.log("Yeet")
         // Get the selected option and its data-params attribute
         var selectedOption = this.options[this.selectedIndex];
         var params = selectedOption.getAttribute('params');
@@ -52,12 +51,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
         });
     });
-});
 
 
-document.addEventListener('DOMContentLoaded', function () {
     var form = document.getElementById('behaviour_form');
-    var resultContainer = document.getElementById('behaviour_form');
 
     form.addEventListener('submit', function (event) {
         event.preventDefault(); // Prevent the form from submitting via the browser
@@ -95,4 +91,24 @@ document.addEventListener('DOMContentLoaded', function () {
                 resultContainer.textContent = 'Error: ' + error.message;
             });
     });
+
+}
+
+
+console.log("Yeet")
+document.addEventListener('DOMContentLoaded', function () {
+    initilaizeBehaviourIdAndSubmitButton();
 });
+
+
+
+function onTimerDivAdded(addedNodes) {
+    //console.log("Got this far")
+    addedNodes.forEach(node => {
+        if (node.nodeType === Node.ELEMENT_NODE && node.id == 'behaviour_id') {
+            console.log("New tickingTimer added: ", node);
+            // You can invoke any function here to initialize the added div
+            initilaizeBehaviourIdAndSubmitButton();
+        }
+    });
+}

@@ -202,13 +202,17 @@ limit 4"""
     # dispatcher info
     #
     sql = """select ship_symbol, behaviour_id, locked_by, locked_until, behaviour_params
-    where ship_symbol = %s """
+    from ship_behaviours
+    where ship_symbol = %s 
+    """
     results = try_execute_select(sql, (ship.name,), client.connection)
     _, behaviour_id, locked_by, locked_until, behaviour_params = results[0]
     return_obj["dispatcher_process"] = behaviour_id
     return_obj["dispatcher_locked_by"] = locked_by
     return_obj["dispatcher_locked_until"] = locked_until
-
+    return_obj["dispatcher_alarm"] = (
+        "text-danger" if locked_until < datetime.now() else "text-success"
+    )
     return return_obj
 
 
