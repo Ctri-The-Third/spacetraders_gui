@@ -182,6 +182,8 @@ def log_task_for_ship(ship_symbol, behaviour_id):
     if not st:
         return "no token"
     params = dict(request.get_json())
+
+    should_log_task = "behaviourOrTask" in params
     for param, value in params.items():
         try:
             params[param] = float(value)
@@ -192,16 +194,20 @@ def log_task_for_ship(ship_symbol, behaviour_id):
         return "No ship or behaviour specified"
     if len(params) == 0:
         return "No parameters supplied"
-    bf.log_task(
-        st.connection,
-        behaviour_id,
-        [],
-        None,
-        agent_symbol=st.current_agent_symbol,
-        specific_ship_symbol=ship_symbol,
-        behaviour_params=dict(params),
-        expiry=datetime.now() + timedelta(hours=1),
-    )
+    if should_log_task:
+        bf.log_task(
+            st.connection,
+            behaviour_id,
+            [],
+            None,
+            agent_symbol=st.current_agent_symbol,
+            specific_ship_symbol=ship_symbol,
+            behaviour_params=dict(params),
+            expiry=datetime.now() + timedelta(hours=1),
+        )
+    else:
+        bf.set_behaviour(st.connection, ship_symbol, behaviour_id, params)
+
     return "Task logged!"
 
 
