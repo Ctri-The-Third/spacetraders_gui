@@ -50,7 +50,7 @@ def load_graphs(st: SpaceTraders) -> dict:
 			  select *, new_Credits - lag(new_credits) over (partition by agent_name order by interval_start) as credits_change from data 
 			  order by 1 desc 
                 """
-    results = try_execute_select(st.connection, query, [])
+    results = try_execute_select(query, [], st.connection)
 
     df = pd.DataFrame(results, columns=["time", "agent", "credits", "credits_change"])
     # get all unique agents
@@ -134,7 +134,7 @@ def market_listing_over_time(st: SpaceTraders, trade_symbol: str, market_symbol:
     and trade_symbol = %s
     and event_timestamp >= now() - interval ' 1 day'
     order by 1"""
-    results = try_execute_select(st.connection, sql, (market_symbol, trade_symbol))
+    results = try_execute_select(sql, (market_symbol, trade_symbol), st.connection)
     df = pd.DataFrame(
         results,
         columns=[
