@@ -552,6 +552,12 @@ order by w.system_symbol = mss.system_Symbol desc, mss.system_Symbol
 """
 
     results = try_execute_select(sql, (st.current_agent_symbol,), st.connection)
+    if not results:
+        st.connection.rollback()
+        try_execute_upsert(
+            "refresh materialized view mat_system_summary", (), st.connection
+        )
+        results = try_execute_select(sql, (st.current_agent_symbol,), st.connection)
     systems = []
     for result in results:
         systems.append(
